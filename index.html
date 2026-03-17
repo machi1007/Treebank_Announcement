@@ -97,7 +97,7 @@ canvas{
 </div>
 
 <h4><a href="index2.html" target="_blank">📖 查看經濟筆記</a></h4>
-<h4><a href="index3.html" target="_blank">📖 專用計算系統</a></h4>
+<h4><a href="index3.html" target="_blank">📊 專用計算系統</a></h4>
 <h2>📢 經濟數據公告</h2>
 
 <div class="dashboard">
@@ -248,8 +248,8 @@ let money=currentAsset*students
 let cpi=((currentPrice-basePrice)/basePrice)*100
 
 let gdp = newSalary*students + money*0.35
-let baseGDP = baseSalary*students
-let gdpGrowth = (gdp-baseGDP)/baseGDP
+let baseGDP = baseSalary*students + baseAsset*students*0.35  // 修正基準GDP包含貨幣
+let gdpGrowth = (gdp - baseGDP)/baseGDP
 
 document.getElementById("inflation").innerText=inflation.toFixed(2)
 document.getElementById("salary").innerText=newSalary+" 點"
@@ -327,8 +327,8 @@ let salaryHistory=historyData.map(h=>h.salary)
 let cpiHistory=historyData.map(h=>h.cpi)
 let moneyHistory=historyData.map(h=>h.money)
 let stockpHistory=historyData.map(h=>h.stockp)
-let gdpHistory=historyData.map(h=>Math.round(h.salary*students + h.money*0.35))
-let gdpGrowthHistory=gdpHistory.map((v,i)=>i===0?0:((v-gdpHistory[0])/gdpHistory[0]*100).toFixed(1))
+let gdpHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
+let gdpGrowthHistory = gdpHistory.map((v,i)=>i===0?0:((v - baseGDP)/baseGDP*100).toFixed(1))
 
 let ma5=movingAverage(stockpHistory,5)
 let ma10=movingAverage(stockpHistory,10)
