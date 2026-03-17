@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>大樹點數銀行經濟筆記</title>
+<style>
+body {
+    font-family: "Microsoft JhengHei";
+    background: #eef3f8;
+    margin: 0;
+}
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 20px;
+    font-size: 28px;
+    text-align: center;
+}
+nav {
+    display: flex;
+    justify-content: center;
+    background: #34495e;
+}
+nav button {
+    background: #34495e;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+nav button.active {
+    background: #1abc9c;
+}
+section {
+    display: none;
+    max-width: 900px;
+    margin: 20px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+h2 {
+    color: #2980b9;
+}
+p {
+    line-height: 1.6;
+}
+.note {
+    background: #fff7d6;
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+}
+em {
+    color: #e74c3c;
+}
+</style>
+</head>
+<body>
+
+<header>🏦 大樹點數銀行經濟筆記</header>
+
+<nav>
+    <button class="tabButton active" data-tab="inflationTab">通膨指數</button>
+    <button class="tabButton" data-tab="salaryTab">建議薪資</button>
+    <button class="tabButton" data-tab="cpiTab">消費物價 (CPI)</button>
+    <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
+    <button class="tabButton" data-tab="gdpTab">GDP & 成長率</button>
+    <button class="tabButton" data-tab="stockTab">股票變動</button>
+<a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">🏠 回到經濟數據公告</a>
+</nav>
+
+<!-- 通膨 -->
+<section id="inflationTab" style="display:block;">
+    <h2>📈 通貨膨脹指數 (Inflation)</h2>
+    <p>
+        通膨指數表示貨幣價值下降、物價上漲的速度。
+        在班級經濟中：
+    </p>
+    <p class="note">
+        計算方式：<br>
+        <b>通膨 = 現有資產 ÷ 基本資產</b><br>
+        💡 現有資產越多 → 通膨越高；現有資產越少 → 經濟緊縮
+    </p>
+    <p>例如：班上每人手上點數比基準多 → 市場錢多 → 通膨增加</p>
+</section>
+
+<!-- 建議薪資 -->
+<section id="salaryTab">
+    <h2>💰 建議薪資</h2>
+    <p>根據通膨指數調整每週薪資，計算公式：</p>
+    <p class="note"><b>新薪資 = 基本薪資 × 通膨指數 × 調整係數</b></p>
+    <p>📌 白話解釋：</p>
+    <ul>
+        <li>經濟好 → 薪資上升</li>
+        <li>經濟差 → 薪資下降</li>
+    </ul>
+</section>
+
+<!-- 消費者物價 -->
+<section id="cpiTab">
+    <h2>🛒 消費者物價指數 (CPI)</h2>
+    <p>反映商品和服務價格變化，計算公式：</p>
+    <p class="note"><b>CPI(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</b></p>
+    <p>📌 白話：</p>
+    <ul>
+        <li>CPI 上升 → 物價漲 → 錢變薄</li>
+        <li>CPI 下降 → 物價穩定 → 錢值錢</li>
+    </ul>
+</section>
+
+<!-- 貨幣供給量 -->
+<section id="moneyTab">
+    <h2>💵 貨幣供給量 (Money Supply)</h2>
+    <p>班級市場中流通的總點數：</p>
+    <p class="note"><b>貨幣供給量 = 每人點數 × 學生人數</b></p>
+    <p>📌 白話：</p>
+    <ul>
+        <li>貨幣多 → 消費力高 → 經濟活絡</li>
+        <li>貨幣少 → 經濟緊縮 → 消費力下降</li>
+    </ul>
+</section>
+
+<!-- GDP & 成長率 -->
+<section id="gdpTab">
+    <h2>📊 GDP & 成長率</h2>
+    <p>班級總經濟規模計算方式：</p>
+    <p class="note"><b>GDP = 本週薪資總和 + 貨幣供給量 × 0.35</b></p>
+    <p>成長率：</p>
+    <p class="note"><b>GDP成長率 = (本週GDP - 基準GDP) ÷ 基準GDP × 100%</b></p>
+    <p>📌 白話：</p>
+    <ul>
+        <li>GDP 高 → 經濟活絡 → 班級資金充足</li>
+        <li>GDP 低 → 經濟冷清 → 班級資金不足</li>
+        <li>成長率正 → 經濟成長，負 → 經濟縮水</li>
+    </ul>
+</section>
+
+<!-- 股票變動 -->
+<section id="stockTab">
+    <h2>📈 股票建議變動 (stockChange)</h2>
+    <p>綜合指標公式：</p>
+    <p class="note">
+        stockChange (%) = (GDP成長率*4 + 貨幣增長率*3 + CPI/100 - (inflation-1)*3) * 100 <br>
+        限制：-10% ≤ stockChange ≤ 10%
+    </p>
+    <p>📌 白話：</p>
+    <ul>
+        <li>GDP 成長 → 股票上漲</li>
+        <li>貨幣多 → 股票上漲</li>
+        <li>CPI 輕微上漲 → 股票小幅上漲</li>
+        <li>通膨過高 → 壓低股票</li>
+        <li>漲跌限制 ±10% → 防止波動太大</li>
+    </ul>
+</section>
+
+<script>
+const tabs = document.querySelectorAll('.tabButton');
+const sections = document.querySelectorAll('section');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        // 移除 active
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.style.display = 'none');
+        // 設定顯示
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).style.display = 'block';
+    });
+});
+</script>
+
+</body>
+</html>
