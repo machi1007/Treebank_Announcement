@@ -2,65 +2,70 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>大樹點數銀行經濟筆記</title>
+<title>🏦 大樹銀行經濟筆記</title>
 <style>
-body {
-    font-family: "Microsoft JhengHei";
-    background: #eef3f8;
-    margin: 0;
+body{
+    font-family:"Microsoft JhengHei";
+    background:#eef3f8;
+    margin:0;
+    padding:30px;
 }
-header {
-    background: #2c3e50;
-    color: white;
-    padding: 20px;
-    font-size: 28px;
-    text-align: center;
+header{
+    background:#2c3e50;
+    color:white;
+    padding:20px;
+    font-size:28px;
+    text-align:center;
 }
-nav {
-    display: flex;
-    justify-content: center;
-    background: #34495e;
+nav{
+    display:flex;
+    justify-content:center;
+    background:#34495e;
+    margin-bottom:20px;
 }
-nav button {
-    background: #34495e;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-size: 16px;
+nav button{
+    background:#34495e;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    cursor:pointer;
+    font-size:16px;
 }
-nav button.active {
-    background: #1abc9c;
+nav button.active{
+    background:#1abc9c;
 }
-section {
-    display: none;
-    max-width: 900px;
-    margin: 20px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+section{
+    display:none;
+    max-width:900px;
+    margin:20px auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
-h2 {
-    color: #2980b9;
+section.active{
+    display:block;
 }
-p {
-    line-height: 1.6;
+h2{
+    color:#2980b9;
 }
-.note {
-    background: #fff7d6;
-    padding: 10px;
-    border-radius: 6px;
-    margin: 10px 0;
+p{
+    line-height:1.6;
 }
-em {
-    color: #e74c3c;
+.note{
+    background:#fff7d6;
+    padding:10px;
+    border-radius:6px;
+    margin:10px 0;
+}
+em{
+    color:#e74c3c;
 }
 </style>
 </head>
 <body>
 
-<header>🏦 大樹點數銀行經濟筆記</header>
+<header>🏦 大樹銀行經濟筆記</header>
 
 <nav>
     <button class="tabButton active" data-tab="inflationTab">通膨指數</button>
@@ -68,16 +73,13 @@ em {
     <button class="tabButton" data-tab="cpiTab">消費物價 (CPI)</button>
     <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
     <button class="tabButton" data-tab="gdpTab">GDP & 成長率</button>
-<a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">🏠 回到經濟數據公告</a>
+    <a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟數據公告</a>
 </nav>
 
 <!-- 通膨 -->
-<section id="inflationTab" style="display:block;">
+<section id="inflationTab" class="active">
     <h2>📈 通貨膨脹指數 (Inflation)</h2>
-    <p>
-        通膨指數表示貨幣價值下降、物價上漲的速度。
-        在班級經濟中：
-    </p>
+    <p>通膨指數表示貨幣價值下降、物價上漲的速度。在班級經濟中：</p>
     <p class="note">
         計算方式：<br>
         <b>通膨 = 現有資產 ÷ 基本資產</b><br>
@@ -138,19 +140,16 @@ em {
 </section>
 
 <script>
-const tabs = document.querySelectorAll('.tabButton');
-const sections = document.querySelectorAll('section');
-
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        // 移除 active
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(s => s.style.display = 'none');
-        // 設定顯示
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.tab).style.display = 'block';
-    });
-});
+const tabs=document.querySelectorAll('.tabButton')
+const sections=document.querySelectorAll('section')
+tabs.forEach(tab=>{
+    tab.addEventListener('click',()=>{
+        tabs.forEach(t=>t.classList.remove('active'))
+        sections.forEach(s=>s.classList.remove('active'))
+        tab.classList.add('active')
+        document.getElementById(tab.dataset.tab).classList.add('active')
+    })
+})
 </script>
 
 </body>
