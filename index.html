@@ -300,9 +300,11 @@ return result
 歷史表
 ====================== */
 let historyTable=document.getElementById("historyTable")
+let baseGDPForHistory = baseSalary*students + baseAsset*students*0.35
+
 historyData.forEach(h=>{
   let hGDP = Math.round(h.salary*students + h.money*0.35)
-  let hGDPGrowth = ((hGDP - baseSalary*students)/(baseSalary*students)*100).toFixed(1)
+  let hGDPGrowth = ((hGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
 
   historyTable.innerHTML+=`
   <tr>
@@ -328,7 +330,7 @@ let cpiHistory=historyData.map(h=>h.cpi)
 let moneyHistory=historyData.map(h=>h.money)
 let stockpHistory=historyData.map(h=>h.stockp)
 let gdpHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
-let gdpGrowthHistory = gdpHistory.map((v,i)=>i===0?0:((v - baseGDP)/baseGDP*100).toFixed(1))
+let gdpGrowthHistory = gdpHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
 
 let ma5=movingAverage(stockpHistory,5)
 let ma10=movingAverage(stockpHistory,10)
