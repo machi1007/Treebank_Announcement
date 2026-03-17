@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>🏦 大樹銀行超級經濟控制台</title>
+<style>
+body{
+  font-family:"Microsoft JhengHei";
+  background:linear-gradient(135deg,#e8f0ff,#ffffff);
+  margin:0;
+  padding:30px;
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  background:white;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+}
+h1{
+  text-align:center;
+  margin-bottom:30px;
+}
+.controlGrid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-bottom:30px;
+}
+.controlBox{
+  background:#f7f9fc;
+  padding:15px;
+  border-radius:8px;
+}
+.controlBox label{
+  font-size:14px;
+  display:block;
+  margin-bottom:4px;
+}
+.controlBox input{
+  width:100%;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+  margin-right:10px;
+}
+.calcBtn{
+  background:#3498db;
+  color:white;
+}
+.addBtn{
+  background:#2ecc71;
+  color:white;
+}
+.dashboard{
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+  margin-top:20px;
+}
+.card{
+  flex:1;
+  min-width:150px;
+  background:#f7f9fc;
+  padding:20px;
+  border-radius:8px;
+  text-align:center;
+}
+.cardTitle{
+  font-size:14px;
+}
+.cardValue{
+  font-size:26px;
+  color:#e74c3c;
+  margin-top:10px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:25px;
+}
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
+}
+th{
+  background:#ecf0f1;
+}
+textarea{
+  width:100%;
+  height:200px;
+  margin-top:20px;
+  font-family:consolas;
+  background:#1e1e1e;
+  color:#00ff9c;
+  padding:10px;
+  border-radius:8px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏦 大樹銀行超級經濟控制台</h1>
+
+<div class="controlGrid">
+
+<div class="controlBox">
+<label>日期</label>
+<input type="date" id="date">
+</div>
+
+<div class="controlBox">
+<label>銀行資產 currentAsset</label>
+<input type="number" id="asset">
+</div>
+
+<div class="controlBox">
+<label>商品價格 currentPrice</label>
+<input type="number" id="price">
+</div>
+
+<div class="controlBox">
+<label>股票結算價 stockp</label>
+<input type="number" id="stock">
+</div>
+
+<div class="controlBox">
+<label>學生數 students</label>
+<input type="number" id="students" value="28">
+</div>
+
+<div class="controlBox">
+<label>基準資產 baseAsset</label>
+<input type="number" id="baseAsset" value="500">
+</div>
+
+<div class="controlBox">
+<label>基準薪資 baseSalary</label>
+<input type="number" id="baseSalary" value="30">
+</div>
+
+<div class="controlBox">
+<label>調整比例 adjustRatio</label>
+<input type="number" id="adjustRatio" value="0.8" step="0.1">
+</div>
+
+<div class="controlBox">
+<label>基準價格 basePrice</label>
+<input type="number" id="basePrice" value="100">
+</div>
+
+</div>
+
+<button class="calcBtn" onclick="calculate()">⚙ 計算經濟</button>
+<button class="addBtn" onclick="addHistory()">📥 加入歷史</button>
+
+<div class="dashboard">
+<div class="card">
+<div class="cardTitle">通膨指數</div>
+<div class="cardValue" id="inflation"></div>
+</div>
+<div class="card">
+<div class="cardTitle">建議薪資</div>
+<div class="cardValue" id="salary"></div>
+</div>
+<div class="card">
+<div class="cardTitle">CPI</div>
+<div class="cardValue" id="cpi"></div>
+</div>
+<div class="card">
+<div class="cardTitle">貨幣供給</div>
+<div class="cardValue" id="money"></div>
+</div>
+<div class="card">
+<div class="cardTitle">GDP</div>
+<div class="cardValue" id="gdp"></div>
+</div>
+<div class="card">
+<div class="cardTitle">GDP成長率</div>
+<div class="cardValue" id="gdpGrowth"></div>
+</div>
+</div>
+
+<h2>📜 歷史資料</h2>
+<table id="historyTable">
+<tr>
+<th>日期</th>
+<th>通膨</th>
+<th>薪資</th>
+<th>CPI</th>
+<th>貨幣</th>
+<th>GDP</th>
+<th>GDP成長</th>
+<th>股價</th>
+</tr>
+</table>
+
+<h2>💻 historyData JS</h2>
+<textarea id="output"></textarea>
+
+</div>
+
+<script>
+let historyData=[]
+let lastData=null
+
+function calculate(){
+  let asset = Number(document.getElementById("asset").value)
+  let price = Number(document.getElementById("price").value)
+  let stock = Number(document.getElementById("stock").value)
+  let students = Number(document.getElementById("students").value)
+  let baseAsset = Number(document.getElementById("baseAsset").value)
+  let baseSalary = Number(document.getElementById("baseSalary").value)
+  let adjustRatio = Number(document.getElementById("adjustRatio").value)
+  let basePrice = Number(document.getElementById("basePrice").value)
+
+  let inflation = asset/baseAsset
+  let salary = Math.round(baseSalary*inflation*adjustRatio)
+  let money = asset*students
+  let cpi = ((price-basePrice)/basePrice)*100
+  let gdp = Math.round(salary*students + money*0.35)
+  let baseGDP = baseSalary*students
+  let gdpGrowth = ((gdp-baseGDP)/baseGDP*100)
+
+  document.getElementById("inflation").innerText = inflation.toFixed(2)
+  document.getElementById("salary").innerText = salary
+  document.getElementById("cpi").innerText = cpi.toFixed(1)+"%"
+  document.getElementById("money").innerText = money
+  document.getElementById("gdp").innerText = gdp
+  document.getElementById("gdpGrowth").innerText = gdpGrowth.toFixed(1)+"%"
+
+  lastData={
+    inflation:inflation.toFixed(2),
+    salary:salary,
+    cpi:cpi.toFixed(1),
+    money:money,
+    gdp:gdp,
+    gdpGrowth:gdpGrowth.toFixed(1),
+    stock:stock
+  }
+}
+
+function addHistory(){
+  if(!lastData){
+    alert("請先計算經濟數據")
+    return
+  }
+  let date = document.getElementById("date").value
+  if(!date){
+    alert("請選擇日期")
+    return
+  }
+  historyData.push({
+    date:date,
+    inflation:lastData.inflation,
+    salary:lastData.salary,
+    cpi:lastData.cpi,
+    money:lastData.money,
+    gdp:lastData.gdp,
+    gdpGrowth:lastData.gdpGrowth,
+    stockp:lastData.stock
+  })
+  render()
+}
+
+function render(){
+  let table = document.getElementById("historyTable")
+  table.innerHTML=`
+  <tr>
+  <th>日期</th><th>通膨</th><th>薪資</th><th>CPI</th><th>貨幣</th><th>GDP</th><th>GDP成長</th><th>股價</th>
+  </tr>
+  `
+  let code="let historyData=[\n"
+  historyData.forEach(h=>{
+    table.innerHTML+=`
+    <tr>
+      <td>${h.date}</td>
+      <td>${h.inflation}</td>
+      <td>${h.salary}</td>
+      <td>${h.cpi}</td>
+      <td>${h.money}</td>
+      <td>${h.gdp}</td>
+      <td>${h.gdpGrowth}</td>
+      <td>${h.stockp}</td>
+    </tr>
+    `
+    code+=`{date:"${h.date}",inflation:${h.inflation},salary:${h.salary},cpi:${h.cpi},money:${h.money},gdp:${h.gdp},gdpGrowth:${h.gdpGrowth},stockp:${h.stockp}},\n`
+  })
+  code+="]"
+  document.getElementById("output").value = code
+}
+</script>
+</body>
+</html>
