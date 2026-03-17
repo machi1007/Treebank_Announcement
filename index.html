@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -93,10 +94,8 @@ canvas{
 <p>溫馨存款活動：<b>活存1.5%/2週、定存5%/月</b></p>
 <b>【當前經濟狀況】</b>：
 <b id="announcement"></b>
-<br><br>
-<b>【股票建議漲跌】</b>：
-<b id="stockAdvice"></b>
 </div>
+
 <h4><a href="index2.html" target="_blank">📖 查看經濟筆記</a></h4>
 <h2>📢 經濟數據公告</h2>
 
@@ -196,7 +195,6 @@ canvas{
 <th>GDP</th>
 <th>GDP成長率</th>
 <th>股票結算價</th>
-<th>股票建議(%)</th>
 </tr>
 </table>
 </div>
@@ -204,6 +202,7 @@ canvas{
 </div>
 
 <script>
+
 /* ======================
 老師修改區
 ====================== */
@@ -251,14 +250,6 @@ let gdp = newSalary*students + money*0.35
 let baseGDP = baseSalary*students
 let gdpGrowth = (gdp-baseGDP)/baseGDP
 
-let moneyGrowth=(money-(baseAsset*students))/(baseAsset*students)
-let stockChange=(gdpGrowth*4 + moneyGrowth*3 + cpi/100 - (inflation-1)*3)*100
-if(stockChange>10) stockChange=10
-if(stockChange<-10) stockChange=-10
-
-/* ======================
-顯示 Dashboard
-====================== */
 document.getElementById("inflation").innerText=inflation.toFixed(2)
 document.getElementById("salary").innerText=newSalary+" 點"
 document.getElementById("money").innerText=money+" 點"
@@ -268,7 +259,6 @@ document.getElementById("gdpGrowth").innerText=(gdpGrowth*100).toFixed(1)+"%"
 document.getElementById("savingRate").innerText=savingRate+"% / 每兩週"
 document.getElementById("fixedRate").innerText=fixedRate+"% / 每月"
 document.getElementById("stockp").innerText = stockp + " 點";
-document.getElementById("stockAdvice").innerText=stockChange.toFixed(1)+"%"
 
 /* ======================
 薪資表
@@ -287,16 +277,32 @@ salaryData.forEach(item=>{
 })
 
 /* ======================
+技術分析
+====================== */
+function movingAverage(data,period){
+let result=[]
+for(let i=0;i<data.length;i++){
+if(i<period-1){
+result.push(null)
+}else{
+let sum=0
+for(let j=0;j<period;j++){
+sum+=data[i-j]
+}
+result.push((sum/period).toFixed(2))
+}
+}
+return result
+}
+
+/* ======================
 歷史表
 ====================== */
 let historyTable=document.getElementById("historyTable")
 historyData.forEach(h=>{
   let hGDP = Math.round(h.salary*students + h.money*0.35)
   let hGDPGrowth = ((hGDP - baseSalary*students)/(baseSalary*students)*100).toFixed(1)
-  let moneyGrowthH=(h.money-(baseAsset*students))/(baseAsset*students)
-  let stockChangeH=(hGDPGrowth/100*4 + moneyGrowthH*3 + h.cpi/100 - (h.inflation-1)*3)*100
-  if(stockChangeH>10) stockChangeH=10
-  if(stockChangeH<-10) stockChangeH=-10
+
   historyTable.innerHTML+=`
   <tr>
     <td>${h.date}</td>
@@ -307,7 +313,6 @@ historyData.forEach(h=>{
     <td>${hGDP}</td>
     <td>${hGDPGrowth}</td>
     <td>${h.stockp}</td>
-    <td>${stockChangeH.toFixed(1)}</td>
   </tr>
   `
 })
@@ -324,39 +329,49 @@ let stockpHistory=historyData.map(h=>h.stockp)
 let gdpHistory=historyData.map(h=>Math.round(h.salary*students + h.money*0.35))
 let gdpGrowthHistory=gdpHistory.map((v,i)=>i===0?0:((v-gdpHistory[0])/gdpHistory[0]*100).toFixed(1))
 
+let ma5=movingAverage(stockpHistory,5)
+let ma10=movingAverage(stockpHistory,10)
+
 new Chart(document.getElementById("inflationChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("salaryChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"每週薪資",data:salaryHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"每週薪資",data:salaryHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("cpiChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"CPI指數",data:cpiHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"CPI指數",data:cpiHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("moneyChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"貨幣供給量",data:moneyHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"貨幣供給量",data:moneyHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("stockpChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"股價",data:stockpHistory,fill:false}]}
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{label:"股價",data:stockpHistory,fill:false},
+{label:"MA5",data:ma5,fill:false},
+{label:"MA10",data:ma10,fill:false}
+]
+}
 })
 
 new Chart(document.getElementById("gdpChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"GDP",data:gdpHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"GDP",data:gdpHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("gdpGrowthChart"),{
-  type:"line",
-  data:{labels:labels,datasets:[{label:"GDP成長率 (%)",data:gdpGrowthHistory,fill:false}]}
+type:"line",
+data:{labels:labels,datasets:[{label:"GDP成長率 (%)",data:gdpGrowthHistory,fill:false}]}
 })
 
 /* ======================
@@ -364,15 +379,17 @@ new Chart(document.getElementById("gdpGrowthChart"),{
 ====================== */
 let text=""
 if(inflation<1){
-  text="📉 經濟緊縮：市場貨幣減少"
+text="📉 經濟緊縮：市場貨幣減少"
 }else if(inflation<1.5){
-  text="📊 經濟穩定"
+text="📊 經濟穩定"
 }else if(inflation<2){
-  text="📈 通貨膨脹：薪資已調整"
+text="📈 通貨膨脹：薪資已調整"
 }else{
-  text="🔥 超級通膨：市場資金過多"
+text="🔥 超級通膨：市場資金過多"
 }
 document.getElementById("announcement").innerText=text
+
 </script>
 </body>
 </html>
+```
