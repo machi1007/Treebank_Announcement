@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>貨幣與消費計算器 (總和版)</title>
+<style>
+body { font-family:"Microsoft JhengHei"; padding:20px; background:#f5f5f5;}
+textarea { width:100%; height:300px; font-family:monospace; margin-bottom:10px;}
+button { padding:10px 20px; font-size:16px; margin-bottom:10px;}
+.result { margin-top:20px; font-size:18px; font-weight:bold; }
+table { border-collapse:collapse; width:100%; margin-top:10px;}
+table, th, td { border:1px solid #999; }
+th, td { padding:6px 10px; text-align:center; }
+</style>
+</head>
+<body>
+    <a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟控制台</a>
+<h2>貨幣與消費計算器 (總和版)</h2>
+<p>每行格式：座號 姓名 存摺 定存 股票 網拍(競標中) 總餘額 網拍(已得標，例如 11件 / 11) 總資產</p>
+
+<textarea id="dataInput"></textarea><br>
+<button onclick="calculateTotals()">計算總額</button>
+
+<div class="result" id="totals"></div>
+
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th>座號</th>
+      <th>姓名</th>
+      <th>存摺結餘</th>
+      <th>定存理財</th>
+      <th>股票理財</th>
+      <th>網拍(競標中)</th>
+      <th>總餘額</th>
+      <th>已得標拍賣 (件數 / 花費)</th>
+      <th>總資產</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+function calculateTotals() {
+  const input = document.getElementById("dataInput").value.trim();
+  if(!input) return alert("請輸入數據！");
+
+  const lines = input.split("\n");
+  const tbody = document.getElementById("dataTable").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  let totalMoneySupply = 0;
+  let totalConsumption = 0;
+  let totalItems = 0;
+
+  lines.forEach(line => {
+    if(!line.trim()) return;
+
+    // 拆前7個欄位
+    let firstParts = line.trim().split(/\s+/).slice(0,7);
+    if(firstParts.length < 7) return;
+
+    const seat = firstParts[0];
+    const name = firstParts[1];
+    const saving = parseInt(firstParts[2]) || 0;
+    const fixedDeposit = parseInt(firstParts[3]) || 0;
+    const stock = parseInt(firstParts[4]) || 0;
+    const auctionPending = parseInt(firstParts[5]) || 0;
+    const totalBalance = parseInt(firstParts[6]) || 0;
+
+    // 抓最後兩個欄位 (已得標拍賣 + 總資產)
+    const matches = line.match(/(\d+件\s*\/\s*\d+)\s+(\d+)$/);
+    let wonItems = 0, auctionWonAmount = 0, totalAssets = 0;
+    if(matches) {
+      const wonStr = matches[1];
+      totalAssets = parseInt(matches[2]) || 0;
+      const wonMatch = wonStr.match(/(\d+)件\s*\/\s*(\d+)/);
+      if(wonMatch){
+        wonItems = parseInt(wonMatch[1]);
+        auctionWonAmount = parseInt(wonMatch[2]);
+      }
+    }
+
+    // 累加總和
+    totalMoneySupply += totalBalance;
+    totalConsumption += auctionWonAmount;
+    totalItems += wonItems;
+
+    // 建立表格行
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${seat}</td>
+      <td>${name}</td>
+      <td>${saving}</td>
+      <td>${fixedDeposit}</td>
+      <td>${stock}</td>
+      <td>${auctionPending}</td>
+      <td>${totalBalance}</td>
+      <td>${wonItems}件 / ${auctionWonAmount}</td>
+      <td>${totalAssets}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  const avgPrice = totalItems > 0 ? (totalConsumption / totalItems).toFixed(2) : 0;
+  document.getElementById("totals").innerText =
+    `貨幣供給量 (總餘額): ${totalMoneySupply} | 消費總額: ${totalConsumption} | CPI (平均消費價格): ${avgPrice}`;
+}
+</script>
+
+</body>
+</html>
