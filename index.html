@@ -106,7 +106,7 @@ canvas{
     <div class="cardValue" id="inflation"></div>
   </div>
   <div class="card">
-    <div class="cardTitle">建議本週薪資</div>
+    <div class="cardTitle">本週建議薪資</div>
     <div class="cardValue" id="salary"></div>
   </div>
   <div class="card">
@@ -160,7 +160,7 @@ canvas{
 </div>
 
 <div class="section">
-<h2>📊 每週薪資歷史折線圖</h2>
+<h2>📊 建議薪資歷史折線圖</h2>
 <canvas id="salaryChart"></canvas>
 </div>
 
@@ -347,7 +347,7 @@ data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:f
 
 new Chart(document.getElementById("salaryChart"),{
 type:"line",
-data:{labels:labels,datasets:[{label:"每週薪資",data:salaryHistory,fill:false}]}
+data:{labels:labels,datasets:[{label:"建議薪資",data:salaryHistory,fill:false}]}
 })
 
 new Chart(document.getElementById("cpiChart"),{
