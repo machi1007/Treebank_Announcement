@@ -48,11 +48,14 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
   <tbody></tbody>
 </table>
 
+<!-- 圖表 -->
 <canvas id="chart1"></canvas>
 <canvas id="chart2"></canvas>
+<canvas id="chart3"></canvas>
+<canvas id="chart4"></canvas>
 
 <script>
-let chart1, chart2;
+let chart1, chart2, chart3, chart4;
 
 function calculateTotals() {
   const input = document.getElementById("dataInput").value.trim();
@@ -161,31 +164,43 @@ ${assetRank}
 💸 消費排行榜:
 ${consumptionRank}
 
-🔥 最會花: ${mostConsume?.name || "-"} (${mostConsume?.consumption || 0})
-🪙 最少花: ${leastConsume?.name || "-"} (${leastConsume?.consumption || 0})
+🛒 最會花: ${mostConsume?.name || "-"} (${mostConsume?.consumption || 0})
+🌱 最少花: ${leastConsume?.name || "-"} (${leastConsume?.consumption || 0})
 ⚖️ 消費差距: ${consumptionGap}`;
 
-  // ===== 圖表 =====
-  const names = assetSorted.map(p=>p.name);
-  const assetsData = assetSorted.map(p=>p.assets);
+  // ===== 圖表資料 =====
+  const assetNames = assetSorted.map(p=>p.name);
+  const assetData = assetSorted.map(p=>p.assets);
 
+  const consumptionNames = consumptionSorted.map(p=>p.name);
+  const consumptionData = consumptionSorted.map(p=>p.consumption);
+
+  // ===== 清除舊圖 =====
   if(chart1) chart1.destroy();
   if(chart2) chart2.destroy();
+  if(chart3) chart3.destroy();
+  if(chart4) chart4.destroy();
 
+  // ===== 資產圖 =====
   chart1 = new Chart(document.getElementById("chart1"), {
     type: 'bar',
-    data: {
-      labels: names,
-      datasets: [{ label: '資產分布', data: assetsData }]
-    }
+    data: { labels: assetNames, datasets: [{ label: '資產分布', data: assetData }] }
   });
 
   chart2 = new Chart(document.getElementById("chart2"), {
     type: 'line',
-    data: {
-      labels: names,
-      datasets: [{ label: '資產排名曲線', data: assetsData, fill:false }]
-    }
+    data: { labels: assetNames, datasets: [{ label: '資產排名曲線', data: assetData, fill:false }] }
+  });
+
+  // ===== 消費圖 =====
+  chart3 = new Chart(document.getElementById("chart3"), {
+    type: 'bar',
+    data: { labels: consumptionNames, datasets: [{ label: '消費分布', data: consumptionData }] }
+  });
+
+  chart4 = new Chart(document.getElementById("chart4"), {
+    type: 'line',
+    data: { labels: consumptionNames, datasets: [{ label: '消費排名曲線', data: consumptionData, fill:false }] }
   });
 }
 </script>
