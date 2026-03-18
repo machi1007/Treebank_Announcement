@@ -48,7 +48,6 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
   <tbody></tbody>
 </table>
 
-<!-- 圖表 -->
 <canvas id="chart1"></canvas>
 <canvas id="chart2"></canvas>
 <canvas id="chart3"></canvas>
@@ -56,6 +55,11 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
 
 <script>
 let chart1, chart2, chart3, chart4;
+
+// 🔹 轉數字工具，移除千分位
+function toNum(str){
+  return parseInt(str.replace(/,/g,"")) || 0;
+}
 
 function calculateTotals() {
   const input = document.getElementById("dataInput").value.trim();
@@ -81,21 +85,21 @@ function calculateTotals() {
 
     const seat = firstParts[0];
     const name = firstParts[1];
-    const saving = parseInt(firstParts[2]) || 0;
-    const fixedDeposit = parseInt(firstParts[3]) || 0;
-    const stock = parseInt(firstParts[4]) || 0;
-    const auctionPending = parseInt(firstParts[5]) || 0;
-    const totalBalance = parseInt(firstParts[6]) || 0;
+    const saving = toNum(firstParts[2]);
+    const fixedDeposit = toNum(firstParts[3]);
+    const stock = toNum(firstParts[4]);
+    const auctionPending = toNum(firstParts[5]);
+    const totalBalance = toNum(firstParts[6]);
 
-    const matches = line.match(/(\d+件\s*\/\s*\d+)\s+(\d+)$/);
+    const matches = line.match(/(\d+件\s*\/\s*\d+)\s+([\d,]+)$/);
     let wonItems = 0, auctionWonAmount = 0, totalAssets = 0;
 
     if(matches) {
-      totalAssets = parseInt(matches[2]) || 0;
-      const wonMatch = matches[1].match(/(\d+)件\s*\/\s*(\d+)/);
+      totalAssets = toNum(matches[2]);
+      const wonMatch = matches[1].match(/(\d+)件\s*\/\s*([\d,]+)/);
       if(wonMatch){
         wonItems = parseInt(wonMatch[1]);
-        auctionWonAmount = parseInt(wonMatch[2]);
+        auctionWonAmount = toNum(wonMatch[2]);
       }
     }
 
