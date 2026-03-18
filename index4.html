@@ -2,24 +2,32 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>貨幣與消費計算器 (總和版)</title>
+<title>貨幣與消費計算器</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body { font-family:"Microsoft JhengHei"; padding:20px; background:#f5f5f5;}
-textarea { width:100%; height:300px; font-family:monospace; margin-bottom:10px;}
+textarea { width:100%; height:260px; font-family:monospace; margin-bottom:10px;}
 button { padding:10px 20px; font-size:16px; margin-bottom:10px;}
-.result { margin-top:20px; font-size:18px; font-weight:bold; }
+.result { margin-top:20px; font-size:16px; font-weight:bold; white-space:pre-line;}
 table { border-collapse:collapse; width:100%; margin-top:10px;}
 table, th, td { border:1px solid #999; }
 th, td { padding:6px 10px; text-align:center; }
+canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
 </style>
 </head>
+
 <body>
-    <a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟控制台</a>
-<h2>貨幣與消費計算器 (總和版)</h2>
+
+<a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">🏠 回到經濟控制台</a>
+
+<h2>貨幣與消費計算器（經濟系統完整版）</h2>
+
 <p>每行格式：座號 姓名 存摺 定存 股票 網拍(競標中) 總餘額 網拍(已得標，例如 11件 / 11) 總資產</p>
 
 <textarea id="dataInput"></textarea><br>
-<button onclick="calculateTotals()">計算總額</button>
+<button onclick="calculateTotals()">計算經濟數據</button>
 
 <div class="result" id="totals"></div>
 
@@ -28,35 +36,43 @@ th, td { padding:6px 10px; text-align:center; }
     <tr>
       <th>座號</th>
       <th>姓名</th>
-      <th>存摺結餘</th>
-      <th>定存理財</th>
-      <th>股票理財</th>
-      <th>網拍(競標中)</th>
+      <th>存摺</th>
+      <th>定存</th>
+      <th>股票</th>
+      <th>競標中</th>
       <th>總餘額</th>
-      <th>已得標拍賣 (件數 / 花費)</th>
+      <th>已得標</th>
       <th>總資產</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 
+<canvas id="chart1"></canvas>
+<canvas id="chart2"></canvas>
+
 <script>
+let chart1, chart2;
+
 function calculateTotals() {
   const input = document.getElementById("dataInput").value.trim();
   if(!input) return alert("請輸入數據！");
 
   const lines = input.split("\n");
-  const tbody = document.getElementById("dataTable").querySelector("tbody");
+  const tbody = document.querySelector("#dataTable tbody");
   tbody.innerHTML = "";
 
   let totalMoneySupply = 0;
   let totalConsumption = 0;
   let totalItems = 0;
+  let totalAssetsSum = 0;
+  let totalPeople = 0;
+
+  let players = [];
 
   lines.forEach(line => {
     if(!line.trim()) return;
 
-    // 拆前7個欄位
     let firstParts = line.trim().split(/\s+/).slice(0,7);
     if(firstParts.length < 7) return;
 
@@ -68,25 +84,30 @@ function calculateTotals() {
     const auctionPending = parseInt(firstParts[5]) || 0;
     const totalBalance = parseInt(firstParts[6]) || 0;
 
-    // 抓最後兩個欄位 (已得標拍賣 + 總資產)
     const matches = line.match(/(\d+件\s*\/\s*\d+)\s+(\d+)$/);
     let wonItems = 0, auctionWonAmount = 0, totalAssets = 0;
+
     if(matches) {
-      const wonStr = matches[1];
       totalAssets = parseInt(matches[2]) || 0;
-      const wonMatch = wonStr.match(/(\d+)件\s*\/\s*(\d+)/);
+      const wonMatch = matches[1].match(/(\d+)件\s*\/\s*(\d+)/);
       if(wonMatch){
         wonItems = parseInt(wonMatch[1]);
         auctionWonAmount = parseInt(wonMatch[2]);
       }
     }
 
-    // 累加總和
     totalMoneySupply += totalBalance;
     totalConsumption += auctionWonAmount;
     totalItems += wonItems;
+    totalAssetsSum += totalAssets;
+    totalPeople++;
 
-    // 建立表格行
+    players.push({
+      name,
+      assets: totalAssets,
+      consumption: auctionWonAmount
+    });
+
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${seat}</td>
@@ -102,9 +123,70 @@ function calculateTotals() {
     tbody.appendChild(row);
   });
 
-  const avgPrice = totalItems > 0 ? (totalConsumption / totalItems).toFixed(2) : 0;
+  // ===== 平均 =====
+  const avgPrice = totalItems ? (totalConsumption / totalItems).toFixed(2) : 0;
+  const avgConsumptionPerPerson = totalPeople ? (totalConsumption / totalPeople).toFixed(2) : 0;
+  const avgMoney = totalPeople ? (totalMoneySupply / totalPeople).toFixed(2) : 0;
+  const avgAssets = totalPeople ? (totalAssetsSum / totalPeople).toFixed(2) : 0;
+
+  // ===== 資產排行 =====
+  const assetSorted = [...players].sort((a,b)=>b.assets - a.assets);
+  const assetRank = assetSorted.map((p,i)=>`${i+1}. ${p.name} (${p.assets})`).join(" ｜ ");
+
+  const richest = assetSorted[0];
+  const poorest = assetSorted[assetSorted.length-1];
+  const assetGap = richest && poorest ? richest.assets - poorest.assets : 0;
+
+  // ===== 消費排行 =====
+  const consumptionSorted = [...players].sort((a,b)=>b.consumption - a.consumption);
+  const consumptionRank = consumptionSorted.map((p,i)=>`${i+1}. ${p.name} (${p.consumption})`).join(" ｜ ");
+
+  const mostConsume = consumptionSorted[0];
+  const leastConsume = consumptionSorted[consumptionSorted.length-1];
+  const consumptionGap = mostConsume && leastConsume ? mostConsume.consumption - leastConsume.consumption : 0;
+
+  // ===== 顯示 =====
   document.getElementById("totals").innerText =
-    `貨幣供給量 (總餘額): ${totalMoneySupply} | 消費總額: ${totalConsumption} | CPI (平均消費價格): ${avgPrice}`;
+`貨幣供給量: ${totalMoneySupply} ｜ 每人平均餘額: ${avgMoney}
+消費總額: ${totalConsumption} ｜ 每人平均消費: ${avgConsumptionPerPerson}
+CPI: ${avgPrice}
+總資產: ${totalAssetsSum} ｜ 平均資產: ${avgAssets}
+
+📊 資產排行榜:
+${assetRank}
+
+💎 最有錢: ${richest?.name || "-"} (${richest?.assets || 0})
+⚖️ 資產差距: ${assetGap}
+
+💸 消費排行榜:
+${consumptionRank}
+
+🔥 最會花: ${mostConsume?.name || "-"} (${mostConsume?.consumption || 0})
+🪙 最少花: ${leastConsume?.name || "-"} (${leastConsume?.consumption || 0})
+⚖️ 消費差距: ${consumptionGap}`;
+
+  // ===== 圖表 =====
+  const names = assetSorted.map(p=>p.name);
+  const assetsData = assetSorted.map(p=>p.assets);
+
+  if(chart1) chart1.destroy();
+  if(chart2) chart2.destroy();
+
+  chart1 = new Chart(document.getElementById("chart1"), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: '資產分布', data: assetsData }]
+    }
+  });
+
+  chart2 = new Chart(document.getElementById("chart2"), {
+    type: 'line',
+    data: {
+      labels: names,
+      datasets: [{ label: '資產排名曲線', data: assetsData, fill:false }]
+    }
+  });
 }
 </script>
 
