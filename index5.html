@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>多票券刮刮樂 - 真實保證中獎版</title>
+<style>
+body {
+  font-family:"Microsoft JhengHei";
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh;
+  background: linear-gradient(135deg,#fdfbfb,#ebedee);
+  margin:0;
+}
+h1 { color:#e74c3c; margin-bottom:15px; text-shadow:1px 1px 2px rgba(0,0,0,0.2);}
+#ticket-select { margin-bottom:10px; }
+#ticket-select button {
+  margin:0 5px; padding:10px 18px; font-size:16px;
+  border-radius:10px; border:none; cursor:pointer;
+  background: linear-gradient(135deg,#3498db,#2980b9);
+  color:white;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+#ticket-select button:hover { transform:scale(1.05); }
+#ticket-select button.active {
+  background: linear-gradient(135deg,#f39c12,#e67e22);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: scale(1.1);
+}
+
+#ticket-info {
+  background: rgba(255,255,255,0.9);
+  border-radius: 15px;
+  padding: 10px 15px;
+  max-width: 360px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  margin-bottom:10px;
+  font-size:14px;
+  text-align:center;
+}
+.prize-label {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.prize-label:hover { transform: scale(1.1); }
+
+.prize-1000 { background: #e74c3c; }
+.prize-900  { background: #d35400; }
+.prize-800  { background: #f39c12; }
+.prize-700  { background: #f1c40f; color:#333; }
+.prize-600  { background: #2ecc71; }
+.prize-500  { background: #3498db; }
+.prize-400  { background: #9b59b6; }
+.prize-300  { background: #1abc9c; }
+.prize-200  { background: #16a085; }
+.prize-100  { background: #7f8c8d; }
+.prize-none { background: #95a5a6; }
+
+#scratch-container {
+  position:relative; width:360px; height:180px; border-radius:15px; overflow:hidden;
+  cursor:pointer; box-shadow:0 15px 35px rgba(0,0,0,0.25); background: linear-gradient(145deg,#f9f9f9,#e0e0e0);
+}
+#scratch-canvas { position:absolute; top:0; left:0; }
+#prize-text {
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  font-size:32px; font-weight:bold; color:#e67e22; text-shadow:1px 1px 3px rgba(0,0,0,0.3);
+  user-select:none; pointer-events:none;
+}
+#result { margin-top:20px; font-size:24px; color:#27ae60; min-height:28px; text-shadow:1px 1px 2px rgba(0,0,0,0.2);}
+button#reset-btn {
+  margin-top:15px; padding:12px 28px; font-size:18px;
+  border-radius:10px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#f39c12,#e67e22); color:white;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s;
+}
+button#reset-btn:hover { transform:scale(1.05); }
+</style>
+</head>
+<body>
+
+<h1>多票券刮刮樂 🎉</h1>
+
+<div id="ticket-select">
+  <button data-ticket="100">100點刮刮樂</button>
+  <button data-ticket="200">200點刮刮樂</button>
+  <button data-ticket="300">300點刮刮樂</button>
+  <button data-ticket="500">500點保證中獎</button>
+</div>
+
+<div id="ticket-info"></div>
+
+<div id="scratch-container">
+  <canvas id="scratch-canvas" width="360" height="180"></canvas>
+  <div id="prize-text"></div>
+</div>
+
+<div id="result"></div>
+<button id="reset-btn">重新刮</button>
+
+<script>
+const canvas=document.getElementById('scratch-canvas');
+const ctx=canvas.getContext('2d');
+const prizeText=document.getElementById('prize-text');
+const resultDiv=document.getElementById('result');
+const resetBtn=document.getElementById('reset-btn');
+const ticketInfo=document.getElementById('ticket-info');
+const ticketButtons=document.querySelectorAll('#ticket-select button');
+
+let isDrawing=false;
+let scratchedPercent=0;
+let currentPrize;
+let currentTicket="100";
+
+// 票券獎金與機率
+const ticketPrizes={
+  "100":[
+    {name:"2000點",chance:0.001},{name:"1000點",chance:0.005},{name:"500點",chance:0.02},
+    {name:"300點",chance:0.05},{name:"200點",chance:0.10},{name:"100點",chance:0.15},{name:"沒中獎",chance:0.674}
+  ],
+  "200":[
+    {name:"5000點",chance:0.001},{name:"2000點",chance:0.003},{name:"1000點",chance:0.01},
+    {name:"500點",chance:0.03},{name:"300點",chance:0.06},{name:"200點",chance:0.10},{name:"沒中獎",chance:0.796}
+  ],
+  "300":[
+    {name:"10000點",chance:0.0005},{name:"5000點",chance:0.002},{name:"2000點",chance:0.008},
+    {name:"1000點",chance:0.02},{name:"500點",chance:0.05},{name:"300點",chance:0.10},{name:"沒中獎",chance:0.8195}
+  ],
+  "500":[
+    {name:"100點",chance:0.25},{name:"200點",chance:0.20},{name:"300點",chance:0.15},{name:"400點",chance:0.12},
+    {name:"500點",chance:0.10},{name:"600點",chance:0.06},{name:"700點",chance:0.05},{name:"800點",chance:0.04},
+    {name:"900點",chance:0.03},{name:"1000點",chance:0.05}
+  ]
+};
+
+function showTicketInfo(ticket){
+  const container=ticketInfo;
+  container.innerHTML="";
+  ticketPrizes[ticket].forEach(p=>{
+    const span=document.createElement('span');
+    span.classList.add('prize-label');
+    const num=parseInt(p.name);
+    if(num>=1000) span.classList.add("prize-1000");
+    else if(num>=900) span.classList.add("prize-900");
+    else if(num>=800) span.classList.add("prize-800");
+    else if(num>=700) span.classList.add("prize-700");
+    else if(num>=600) span.classList.add("prize-600");
+    else if(num>=500) span.classList.add("prize-500");
+    else if(num>=400) span.classList.add("prize-400");
+    else if(num>=300) span.classList.add("prize-300");
+    else if(num>=200) span.classList.add("prize-200");
+    else if(num>=100) span.classList.add("prize-100");
+    else span.classList.add("prize-0");
+    span.textContent=`${p.name} (${(p.chance*100).toFixed(1)}%)`;
+    container.appendChild(span);
+  });
+}
+
+ticketButtons.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    currentTicket=btn.dataset.ticket;
+    currentPrize=getRandomPrize();
+    prizeText.textContent=currentPrize;
+    showTicketInfo(currentTicket);
+    initScratch();
+    ticketButtons.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+ticketButtons[0].classList.add('active');
+
+function getRandomPrize(){
+  const prizes=ticketPrizes[currentTicket];
+  const rand=Math.random();
+  let cumulative=0;
+  for(let p of prizes){
+    cumulative+=p.chance;
+    if(rand<cumulative) return p.name;
+  }
+  return prizes[prizes.length-1].name;
+}
+
+function initScratch(){
+  ctx.globalCompositeOperation='source-over';
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const grad=ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  grad.addColorStop(0,'#bdc3c7'); grad.addColorStop(1,'#7f8c8d');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.globalCompositeOperation='destination-out';
+  resultDiv.textContent="";
+  scratchedPercent=0;
+}
+
+canvas.addEventListener('mousedown',()=>isDrawing=true);
+canvas.addEventListener('mouseup',()=>isDrawing=false);
+canvas.addEventListener('mouseleave',()=>isDrawing=false);
+canvas.addEventListener('mousemove',scratchMove);
+canvas.addEventListener('touchstart',(e)=>{isDrawing=true;scratchMove(e);e.preventDefault();});
+canvas.addEventListener('touchend',()=>isDrawing=false);
+canvas.addEventListener('touchmove',scratchMove);
+
+function scratchMove(e){
+  if(!isDrawing) return;
+  const rect=canvas.getBoundingClientRect();
+  let x,y;
+  if(e.touches){x=e.touches[0].clientX-rect.left;y=e.touches[0].clientY-rect.top;}
+  else{x=e.clientX-rect.left;y=e.clientY-rect.top;}
+  ctx.beginPath();
+  ctx.arc(x,y,20,0,Math.PI*2);
+  ctx.fill();
+  calculateScratched();
+}
+
+function calculateScratched(){
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  let transparent=0;
+  for(let i=3;i<img.data.length;i+=4){if(img.data[i]===0) transparent++;}
+  scratchedPercent=transparent/(canvas.width*canvas.height)*100;
+  if(scratchedPercent>50){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    resultDiv.textContent=currentPrize==="沒中獎"?"很可惜，沒中獎 😢":`恭喜你中 ${currentPrize} 🎉`;
+  }
+}
+
+resetBtn.addEventListener('click',()=>{
+  currentPrize=getRandomPrize();
+  prizeText.textContent=currentPrize;
+  initScratch();
+});
+
+showTicketInfo(currentTicket);
+currentPrize=getRandomPrize();
+prizeText.textContent=currentPrize;
+initScratch();
+</script>
+</body>
+</html>
