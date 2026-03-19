@@ -20,9 +20,11 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
 
 <body>
 
-<a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">🏠 回到經濟控制台</a>
+<a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">
+🏠 回到經濟控制台
+</a>
 
-<h2>貨幣與消費計算器</h2>
+<h2>貨幣與消費計算器（終極版）</h2>
 
 <p>每行格式：座號 姓名 存摺 定存 股票 網拍(競標中) 總餘額 網拍(已得標，例如 11件 / 11) 總資產</p>
 
@@ -32,180 +34,203 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
 <div class="result" id="totals"></div>
 
 <table id="dataTable">
-  <thead>
-    <tr>
-      <th>座號</th>
-      <th>姓名</th>
-      <th>存摺</th>
-      <th>定存</th>
-      <th>股票</th>
-      <th>競標中</th>
-      <th>總餘額</th>
-      <th>已得標</th>
-      <th>總資產</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
+<thead>
+<tr>
+<th>座號</th><th>姓名</th><th>存摺</th><th>定存</th>
+<th>股票</th><th>競標中</th><th>總餘額</th>
+<th>已得標</th><th>總資產</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
 <canvas id="chart1"></canvas>
 <canvas id="chart2"></canvas>
 <canvas id="chart3"></canvas>
 <canvas id="chart4"></canvas>
+<canvas id="chart5"></canvas>
+<canvas id="chart6"></canvas>
+<canvas id="chart7"></canvas> <!-- ⭐洛倫茲曲線 -->
 
 <script>
-let chart1, chart2, chart3, chart4;
+let charts=[];
 
-// 🔹 轉數字工具，移除千分位
 function toNum(str){
   return parseInt(str.replace(/,/g,"")) || 0;
 }
 
-function calculateTotals() {
-  const input = document.getElementById("dataInput").value.trim();
+// ===== 吉尼係數 =====
+function gini(arr){
+  const n = arr.length;
+  if(n === 0) return 0;
+
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const total = sorted.reduce((a,b)=>a+b,0);
+  if(total === 0) return 0;
+
+  let weightedSum = 0;
+  for(let i=0;i<n;i++){
+    weightedSum += (i+1) * sorted[i];
+  }
+
+  return (2 * weightedSum) / (n * total) - (n + 1) / n;
+}
+
+// ===== 洛倫茲曲線 =====
+function lorenzData(arr){
+  const sorted=[...arr].sort((a,b)=>a-b);
+  const total=sorted.reduce((a,b)=>a+b,0);
+
+  let cum=0;
+  let points=[0];
+  sorted.forEach(v=>{
+    cum+=v;
+    points.push(cum/total);
+  });
+
+  return points;
+}
+
+function calculateTotals(){
+
+  const input=document.getElementById("dataInput").value.trim();
   if(!input) return alert("請輸入數據！");
 
-  const lines = input.split("\n");
-  const tbody = document.querySelector("#dataTable tbody");
-  tbody.innerHTML = "";
+  const lines=input.split("\n");
+  const tbody=document.querySelector("#dataTable tbody");
+  tbody.innerHTML="";
 
-  let totalMoneySupply = 0;
-  let totalConsumption = 0;
-  let totalItems = 0;
-  let totalAssetsSum = 0;
-  let totalPeople = 0;
+  let totalMoney=0,totalConsumption=0,totalItems=0,totalAssets=0;
+  let players=[];
 
-  let players = [];
-
-  lines.forEach(line => {
+  lines.forEach(line=>{
     if(!line.trim()) return;
 
-    let firstParts = line.trim().split(/\s+/).slice(0,7);
-    if(firstParts.length < 7) return;
+    let p=line.trim().split(/\s+/);
+    if(p.length<7) return;
 
-    const seat = firstParts[0];
-    const name = firstParts[1];
-    const saving = toNum(firstParts[2]);
-    const fixedDeposit = toNum(firstParts[3]);
-    const stock = toNum(firstParts[4]);
-    const auctionPending = toNum(firstParts[5]);
-    const totalBalance = toNum(firstParts[6]);
+    const seat=p[0];
+    const name=p[1];
+    const saving=toNum(p[2]);
+    const fixed=toNum(p[3]);
+    const stock=toNum(p[4]);
+    const pending=toNum(p[5]);
+    const balance=toNum(p[6]);
 
-    const matches = line.match(/(\d+件\s*\/\s*\d+)\s+([\d,]+)$/);
-    let wonItems = 0, auctionWonAmount = 0, totalAssets = 0;
+    const matches=line.match(/(\d+)件\s*\/\s*([\d,]+)\s+([\d,]+)$/);
 
-    if(matches) {
-      totalAssets = toNum(matches[2]);
-      const wonMatch = matches[1].match(/(\d+)件\s*\/\s*([\d,]+)/);
-      if(wonMatch){
-        wonItems = parseInt(wonMatch[1]);
-        auctionWonAmount = toNum(wonMatch[2]);
-      }
+    let items=0,consume=0,asset=0;
+
+    if(matches){
+      items=parseInt(matches[1]);
+      consume=toNum(matches[2]);
+      asset=toNum(matches[3]);
     }
 
-    totalMoneySupply += totalBalance;
-    totalConsumption += auctionWonAmount;
-    totalItems += wonItems;
-    totalAssetsSum += totalAssets;
-    totalPeople++;
+    totalMoney+=balance;
+    totalConsumption+=consume;
+    totalItems+=items;
+    totalAssets+=asset;
 
     players.push({
       name,
-      assets: totalAssets,
-      consumption: auctionWonAmount
+      asset,
+      consume,
+      balance
     });
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${seat}</td>
-      <td>${name}</td>
-      <td>${saving}</td>
-      <td>${fixedDeposit}</td>
-      <td>${stock}</td>
-      <td>${auctionPending}</td>
-      <td>${totalBalance}</td>
-      <td>${wonItems}件 / ${auctionWonAmount}</td>
-      <td>${totalAssets}</td>
-    `;
-    tbody.appendChild(row);
+    tbody.innerHTML+=`
+    <tr>
+    <td>${seat}</td><td>${name}</td>
+    <td>${saving}</td><td>${fixed}</td>
+    <td>${stock}</td><td>${pending}</td>
+    <td>${balance}</td>
+    <td>${items}件 / ${consume}</td>
+    <td>${asset}</td>
+    </tr>`;
   });
 
-  // ===== 平均 =====
-  const avgPrice = totalItems ? (totalConsumption / totalItems).toFixed(2) : 0;
-  const avgConsumptionPerPerson = totalPeople ? (totalConsumption / totalPeople).toFixed(2) : 0;
-  const avgMoney = totalPeople ? (totalMoneySupply / totalPeople).toFixed(2) : 0;
-  const avgAssets = totalPeople ? (totalAssetsSum / totalPeople).toFixed(2) : 0;
+  const n=players.length;
 
-  // ===== 資產排行 =====
-  const assetSorted = [...players].sort((a,b)=>b.assets - a.assets);
-  const assetRank = assetSorted.map((p,i)=>`${i+1}. ${p.name} (${p.assets})`).join(" ｜ ");
+  const avgMoney=(totalMoney/n).toFixed(1);
+  const avgAsset=(totalAssets/n).toFixed(1);
+  const avgConsume=(totalConsumption/n).toFixed(1);
+  const avgPrice= totalItems? (totalConsumption/totalItems).toFixed(2):0;
 
-  const richest = assetSorted[0];
-  const poorest = assetSorted[assetSorted.length-1];
-  const assetGap = richest && poorest ? richest.assets - poorest.assets : 0;
+  // 排序
+  const assetSorted=[...players].sort((a,b)=>b.asset-a.asset);
+  const consumeSorted=[...players].sort((a,b)=>b.consume-a.consume);
+  const balanceSorted=[...players].sort((a,b)=>b.balance-a.balance);
 
-  // ===== 消費排行 =====
-  const consumptionSorted = [...players].sort((a,b)=>b.consumption - a.consumption);
-  const consumptionRank = consumptionSorted.map((p,i)=>`${i+1}. ${p.name} (${p.consumption})`).join(" ｜ ");
+  // 吉尼
+  const giniValue=gini(players.map(p=>p.asset));
 
-  const mostConsume = consumptionSorted[0];
-  const leastConsume = consumptionSorted[consumptionSorted.length-1];
-  const consumptionGap = mostConsume && leastConsume ? mostConsume.consumption - leastConsume.consumption : 0;
+  let giniText="";
+  if(giniValue<0.2) giniText="（超平均）";
+  else if(giniValue<0.4) giniText="（合理差距）";
+  else if(giniValue<0.6) giniText="（差距偏大）";
+  else giniText="（貧富差距嚴重）";
 
-  // ===== 顯示 =====
-  document.getElementById("totals").innerText =
-`貨幣供給量: ${totalMoneySupply} ｜ 每人平均餘額: ${avgMoney}
-消費總額: ${totalConsumption} ｜ 每人平均消費: ${avgConsumptionPerPerson}
+  // 財富集中度
+  const top20=Math.ceil(n*0.2);
+  const topAssets=assetSorted.slice(0,top20).reduce((s,p)=>s+p.asset,0);
+  const concentration=((topAssets/totalAssets)*100).toFixed(1);
+
+  document.getElementById("totals").innerText=`
+貨幣供給量: ${totalMoney} ｜ 平均餘額: ${avgMoney}
+消費總額: ${totalConsumption} ｜ 平均消費: ${avgConsume}
 CPI: ${avgPrice}
-總資產: ${totalAssetsSum} ｜ 平均資產: ${avgAssets}
 
-📊 資產排行榜:
-${assetRank}
+總資產: ${totalAssets} ｜ 平均資產: ${avgAsset}
 
-💎 最有錢: ${richest?.name || "-"} (${richest?.assets || 0})
-⚖️ 資產差距: ${assetGap}
+📊 吉尼係數: ${giniValue.toFixed(3)} ${giniText}
+🟡 前20%掌握: ${concentration}%
 
-💸 消費排行榜:
-${consumptionRank}
+📈 洛倫茲曲線：越彎代表越不公平
+`;
 
-🛒 最會花: ${mostConsume?.name || "-"} (${mostConsume?.consumption || 0})
-🌱 最少花: ${leastConsume?.name || "-"} (${leastConsume?.consumption || 0})
-⚖️ 消費差距: ${consumptionGap}`;
+  // 清圖
+  charts.forEach(c=>c.destroy());
+  charts=[];
 
-  // ===== 圖表資料 =====
-  const assetNames = assetSorted.map(p=>p.name);
-  const assetData = assetSorted.map(p=>p.assets);
+  function makeChart(id,label,labels,data,type){
+    const c=new Chart(document.getElementById(id),{
+      type:type,
+      data:{labels:labels,datasets:[{label:label,data:data}]}
+    });
+    charts.push(c);
+  }
 
-  const consumptionNames = consumptionSorted.map(p=>p.name);
-  const consumptionData = consumptionSorted.map(p=>p.consumption);
+  // 原本圖
+  makeChart("chart1","資產分布",assetSorted.map(p=>p.name),assetSorted.map(p=>p.asset),'bar');
+  makeChart("chart2","資產排名",assetSorted.map(p=>p.name),assetSorted.map(p=>p.asset),'line');
+  makeChart("chart3","消費分布",consumeSorted.map(p=>p.name),consumeSorted.map(p=>p.consume),'bar');
+  makeChart("chart4","消費排名",consumeSorted.map(p=>p.name),consumeSorted.map(p=>p.consume),'line');
+  makeChart("chart5","餘額分布",balanceSorted.map(p=>p.name),balanceSorted.map(p=>p.balance),'bar');
+  makeChart("chart6","餘額排名",balanceSorted.map(p=>p.name),balanceSorted.map(p=>p.balance),'line');
 
-  // ===== 清除舊圖 =====
-  if(chart1) chart1.destroy();
-  if(chart2) chart2.destroy();
-  if(chart3) chart3.destroy();
-  if(chart4) chart4.destroy();
+  // ===== 洛倫茲 =====
+  const lorenz=lorenzData(players.map(p=>p.asset));
+  const labels=lorenz.map((_,i)=>(i/ (lorenz.length-1) *100).toFixed(0)+"%");
 
-  // ===== 資產圖 =====
-  chart1 = new Chart(document.getElementById("chart1"), {
-    type: 'bar',
-    data: { labels: assetNames, datasets: [{ label: '資產分布', data: assetData }] }
+  const c=new Chart(document.getElementById("chart7"),{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[
+        {
+          label:'完全平等',
+          data:labels.map((_,i)=>i/(labels.length-1)),
+          borderDash:[5,5]
+        },
+        {
+          label:'實際分配',
+          data:lorenz
+        }
+      ]
+    }
   });
-
-  chart2 = new Chart(document.getElementById("chart2"), {
-    type: 'line',
-    data: { labels: assetNames, datasets: [{ label: '資產排名曲線', data: assetData, fill:false }] }
-  });
-
-  // ===== 消費圖 =====
-  chart3 = new Chart(document.getElementById("chart3"), {
-    type: 'bar',
-    data: { labels: consumptionNames, datasets: [{ label: '消費分布', data: consumptionData }] }
-  });
-
-  chart4 = new Chart(document.getElementById("chart4"), {
-    type: 'line',
-    data: { labels: consumptionNames, datasets: [{ label: '消費排名曲線', data: consumptionData, fill:false }] }
-  });
+  charts.push(c);
 }
 </script>
 
