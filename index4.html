@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>貨幣與消費計算器</title>
+<title>貨幣與消費計算器（終極經濟版）</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -186,7 +186,7 @@ CPI: ${avgPrice}
 📊 吉尼係數: ${giniValue.toFixed(3)} ${giniText}
 🟡 前20%掌握: ${concentration}%
 
-📈 洛倫茲曲線：越彎代表越不公平
+📈 羅倫茲曲線：越彎代表越不公平
 `;
 
   // 清圖
@@ -219,12 +219,12 @@ CPI: ${avgPrice}
       labels:labels,
       datasets:[
         {
-          label:'完全平等',
+          label:'羅倫茲曲線(完全平等)',
           data:labels.map((_,i)=>i/(labels.length-1)),
           borderDash:[5,5]
         },
         {
-          label:'實際分配',
+          label:'羅倫茲曲線(實際分配)',
           data:lorenz
         }
       ]
