@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>🏦 大樹銀行經濟筆記</title>
+<title>🏦 大樹銀行經濟筆記（含課稅模擬）</title>
 <style>
 body{
     font-family:"Microsoft JhengHei";
@@ -19,6 +19,7 @@ header{
 }
 nav{
     display:flex;
+    flex-wrap:wrap;
     justify-content:center;
     background:#34495e;
     margin-bottom:20px;
@@ -30,6 +31,7 @@ nav button{
     padding:12px 20px;
     cursor:pointer;
     font-size:16px;
+    margin:2px;
 }
 nav button.active{
     background:#1abc9c;
@@ -61,85 +63,161 @@ p{
 em{
     color:#e74c3c;
 }
+ul{margin-left:20px;}
 </style>
 </head>
 <body>
 
-<header>🏦 大樹銀行經濟筆記</header>
+<header>🏦 大樹銀行經濟筆記（含課稅模擬）</header>
 
 <nav>
-    <button class="tabButton active" data-tab="inflationTab">通膨指數</button>
+    <button class="tabButton active" data-tab="introTab">經濟小教室</button>
+    <button class="tabButton" data-tab="inflationTab">通膨指數</button>
     <button class="tabButton" data-tab="salaryTab">建議薪資</button>
-    <button class="tabButton" data-tab="cpiTab">消費物價 (CPI)</button>
+    <button class="tabButton" data-tab="cpiTab">CPI</button>
     <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
     <button class="tabButton" data-tab="gdpTab">GDP&成長率</button>
+    <button class="tabButton" data-tab="taxTab">課稅模擬</button>
     <a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟數據公告</a>
 </nav>
 
+<!-- 經濟小教室筆記 -->
+<section id="introTab" class="active">
+<h2>💰 班級經濟小教室（超白話版）</h2>
+
+<h3>🧠 一、錢有兩種狀態</h3>
+<p>錢只有兩種：<br>
+💰 餘額（現金）：可以馬上花，例如活存或手上點數<br>
+🧱 資產（已花掉的錢）：買到商品或投資，不能直接再花
+</p>
+
+<h3>🛒 二、什麼是消費？</h3>
+<p>消費 = 把錢拿去買東西。例如買商品或網拍得標。消費越多 → 經濟越熱鬧！</p>
+
+<h3>📊 三、重要經濟數據</h3>
+<ul>
+<li>💰 貨幣供給量：全班錢加起來</li>
+<li>💸 消費總額：全班總共花了多少錢</li>
+<li>🧾 CPI（物價）：平均價格 = 花的錢 ÷ 買的件數</li>
+<li>🧱 總資產：全班累積買了多少東西（價值）</li>
+</ul>
+
+<h3>📈 四、誰比較有錢？</h3>
+<ul>
+<li>💎 資產排行榜（誰最有錢）</li>
+<li>💸 消費排行榜（誰最會花）</li>
+<li>💰 餘額排行榜（誰最有現金）</li>
+</ul>
+
+<h3>⚖️ 五、貧富差距</h3>
+<p>📊 吉尼係數：0~1，看公平程度。0=超公平，0.3=還可以，0.5=差距大，0.7↑很不公平</p>
+<p>📈 洛倫茲曲線：直線=公平，彎彎=不公平</p>
+<p>🟡 財富集中：前20%的人拿多少錢，例如50%還可以，80%太集中</p>
+
+<h3>🏦 七、利率</h3>
+<p>銀行給你的獎勵（利息）：活存利率低0~1%，定存利率高3~6%</p>
+<p>利率低 → 鼓勵花錢，經濟熱<br>
+利率高 → 鼓勵存錢，經濟冷</p>
+
+<h3>🏦 十一、升息 / 降息</h3>
+<p>升息 = 鼓勵存錢，消費少，經濟冷<br>
+降息 = 鼓勵花錢，消費多，經濟熱</p>
+
+<h3>🧪 十二、老師可以玩</h3>
+<p>情境1：東西太貴 → 升息<br>
+情境2：沒人買東西 → 降息<br>
+💡 一句話：升息＝把錢吸回來，降息＝把錢放出去</p>
+</section>
+
 <!-- 通膨 -->
-<section id="inflationTab" class="active">
-    <h2>📈 通貨膨脹指數 (Inflation)</h2>
-    <p>通膨指數表示貨幣價值下降、物價上漲的速度。在班級經濟中：</p>
-    <p class="note">
-        計算方式：<br>
-        <b>通膨 = 現有資產 ÷ 基本資產</b><br>
-        💡 現有資產越多 → 通膨越高；現有資產越少 → 經濟緊縮
-    </p>
-    <p>例如：班上每人手上點數比基準多 → 市場錢多 → 通膨增加</p>
+<section id="inflationTab">
+<h2>📈 通貨膨脹指數 (Inflation)</h2>
+<p>通膨指數表示貨幣價值下降、物價上漲速度。</p>
+<p class="note">
+計算方式：<br>
+<b>通膨 = 現有資產 ÷ 基本資產</b><br>
+💡 現有資產越多 → 通膨越高
+</p>
 </section>
 
 <!-- 建議薪資 -->
 <section id="salaryTab">
-    <h2>💰 建議薪資</h2>
-    <p>根據通膨指數調整每週薪資，計算公式：</p>
-    <p class="note"><b>新薪資 = 基本薪資 × 通膨指數 × 調整係數</b></p>
-    <p>📌 白話解釋：</p>
-    <ul>
-        <li>經濟好 → 薪資上升</li>
-        <li>經濟差 → 薪資下降</li>
-    </ul>
+<h2>💰 建議薪資</h2>
+<p>新薪資 = 基本薪資 × 通膨指數 × 調整係數</p>
+<ul>
+<li>經濟好 → 薪資上升</li>
+<li>經濟差 → 薪資下降</li>
+</ul>
 </section>
 
-<!-- 消費者物價 -->
+<!-- CPI -->
 <section id="cpiTab">
-    <h2>🛒 消費者物價指數 (CPI)</h2>
-    <p>反映商品和服務價格變化，計算公式：</p>
-    <p class="note"><b>CPI(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</b></p>
-    <p>📌 白話：</p>
-    <ul>
-        <li>CPI 上升 → 物價漲 → 錢變薄</li>
-        <li>CPI 下降 → 物價穩定 → 錢值錢</li>
-    </ul>
+<h2>🛒 消費者物價指數 (CPI)</h2>
+<p>CPI(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</p>
+<ul>
+<li>CPI 上升 → 物價漲 → 錢變薄</li>
+<li>CPI 下降 → 物價穩定 → 錢值錢</li>
+</ul>
 </section>
 
 <!-- 貨幣供給量 -->
 <section id="moneyTab">
-    <h2>💵 貨幣供給量 (Money Supply)</h2>
-    <p>班級市場中流通的總點數：</p>
-    <p class="note"><b>貨幣供給量 = 每人點數 × 學生人數</b></p>
-    <p>📌 白話：</p>
-    <ul>
-        <li>貨幣多 → 消費力高 → 經濟活絡</li>
-        <li>貨幣少 → 經濟緊縮 → 消費力下降</li>
-    </ul>
+<h2>💵 貨幣供給量 (Money Supply)</h2>
+<p>班級市場中流通的總點數</p>
+<p class="note"><b>貨幣供給量 = 每人點數 × 學生人數</b></p>
+<ul>
+<li>貨幣多 → 消費力高 → 經濟活絡</li>
+<li>貨幣少 → 經濟緊縮 → 消費力下降</li>
+</ul>
 </section>
 
-<!-- GDP & 成長率 -->
+<!-- GDP -->
 <section id="gdpTab">
-    <h2>📊 GDP & 成長率</h2>
-    <p>班級總經濟規模計算方式：</p>
-    <p class="note"><b>GDP = 本次薪資總和 + 貨幣供給量 × 0.35</b></p>
-    <p>成長率：</p>
-    <p class="note"><b>GDP成長率 = (本次GDP - 基準GDP) ÷ 基準GDP × 100%</b></p>
-    <p>📌 白話：</p>
-    <ul>
-        <li>GDP 高 → 經濟活絡 → 班級資金充足</li>
-        <li>GDP 低 → 經濟冷清 → 班級資金不足</li>
-        <li>成長率正 → 經濟成長，負 → 經濟縮水</li>
-    </ul>
+<h2>📊 GDP & 成長率</h2>
+<p>GDP = 本次薪資總和 + 貨幣供給量 × 0.35</p>
+<p>成長率 = (本次GDP - 基準GDP) ÷ 基準GDP × 100%</p>
+<ul>
+<li>GDP 高 → 經濟活絡</li>
+<li>GDP 低 → 經濟冷清</li>
+<li>成長率正 → 經濟成長，負 → 經濟縮水</li>
+</ul>
+</section>
+
+<!-- 課稅模擬 -->
+<section id="taxTab">
+<h2>💸 課稅建議與再分配（完善版）</h2>
+<p>輸入班級數據，系統會建議課稅金額，計算班級基金與補助規則，<b>不顯示每位學生扣款明細</b>。</p>
+
+<div class="note">
+<label>💵 貨幣供給量: </label>
+<input type="number" id="moneySupply" value="10000"> 點<br>
+<label>📈 CPI (物價漲幅 %): </label>
+<input type="number" id="cpi" value="20"> %<br>
+<label>📊 吉尼係數 (0~1): </label>
+<input type="number" id="gini" step="0.01" value="0.5"><br>
+<label>👨‍👩‍👧‍👦 學生人數: </label>
+<input type="number" id="studentCount" value="28"><br>
+<label>⚖️ 最低生活金: </label>
+<input type="number" id="minCash" value="5"> 點<br>
+<label>🟢 補助門檻: </label>
+<input type="number" id="assistThreshold" value="20"> 點<br><br>
+<button onclick="calculateAndDistributeTax()">計算課稅建議</button>
+</div>
+
+<div class="note" id="taxResult" style="display:none;">
+<h3>建議課稅金額：</h3>
+<p id="taxAmount" style="font-weight:bold;"></p>
+<h3>平均每人課稅：</h3>
+<p id="averageTax" style="font-weight:bold;"></p>
+<h3>課稅緣由：</h3>
+<p id="taxReason"></p>
+<h3>班級基金總額：</h3>
+<p id="classFund"></p>
+</div>
 </section>
 
 <script>
+// 切換頁籤
 const tabs=document.querySelectorAll('.tabButton')
 const sections=document.querySelectorAll('section')
 tabs.forEach(tab=>{
@@ -150,6 +228,42 @@ tabs.forEach(tab=>{
         document.getElementById(tab.dataset.tab).classList.add('active')
     })
 })
+
+// 課稅模擬（不顯示每位學生扣款）
+function calculateAndDistributeTax(){
+    const moneySupply = parseFloat(document.getElementById('moneySupply').value)
+    const cpi = parseFloat(document.getElementById('cpi').value)
+    const gini = parseFloat(document.getElementById('gini').value)
+    const studentCount = parseInt(document.getElementById('studentCount').value)
+    const minCash = parseFloat(document.getElementById('minCash').value)
+    const assistThreshold = parseFloat(document.getElementById('assistThreshold').value)
+
+    const totalTax = Math.round(moneySupply * 0.10 * (cpi/100) * gini)
+
+    let reason = "因為市場上錢太多（"+moneySupply+"）、物價漲幅高（CPI："+cpi+"%）、貧富差距偏高（吉尼係數："+gini+"），"
+    reason += "建議課稅金額為 "+totalTax+" 點，可作為班級基金或再分配補助。"
+
+    // 班級基金 = 課稅總額扣除補助（補助已內建規則）
+    const perStudentCash = Math.floor(moneySupply / studentCount)
+    let fund = 0
+    for(let i=0;i<studentCount;i++){
+        let deduction = Math.min(perStudentCash - minCash, Math.round(totalTax/studentCount))
+        deduction = Math.max(deduction, 0)
+        fund += deduction
+
+        let remaining = perStudentCash - deduction
+        if(remaining < assistThreshold){
+            let assist = Math.min(Math.round(deduction * 0.5), assistThreshold - remaining)
+            fund -= assist
+        }
+    }
+
+    document.getElementById('taxAmount').innerText = totalTax + " 點"
+    document.getElementById('averageTax').innerText = Math.round(totalTax / studentCount) + " 點"
+    document.getElementById('taxReason').innerText = reason
+    document.getElementById('classFund').innerText = fund + " 點"
+    document.getElementById('taxResult').style.display = 'block'
+}
 </script>
 
 </body>
