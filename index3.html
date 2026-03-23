@@ -236,18 +236,18 @@ function calculate(){
   document.getElementById("inflation").innerText = inflation.toFixed(2)
   document.getElementById("salary").innerText = salary
   document.getElementById("cpi").innerText = cpi.toFixed(1)+"%"
-  document.getElementById("money").innerText = money
+  document.getElementById("money").innerText = money.toFixed(2)
   document.getElementById("gdp").innerText = gdp
   document.getElementById("gdpGrowth").innerText = gdpGrowth.toFixed(1)+"%"
 
   lastData={
-    inflation:inflation.toFixed(2),
-    salary:salary,
-    cpi:cpi.toFixed(1),
-    money:money,
-    gdp:gdp,
-    gdpGrowth:gdpGrowth.toFixed(1),
-    stock:stock
+  inflation:inflation.toFixed(2),
+  salary:salary,
+  cpi:cpi.toFixed(1),
+  money:money.toFixed(2),
+  gdp:gdp,
+  gdpGrowth:gdpGrowth.toFixed(1),
+  stock:stock
   }
 }
 
