@@ -68,8 +68,7 @@ ul{margin-left:20px;}
 </head>
 <body>
 
-<header>🏦 大樹銀行經濟筆記</header>
-
+<header>🏦 大樹銀行經濟筆記<br></br></header>
 <nav>
     <button class="tabButton active" data-tab="introTab">經濟小教室</button>
     <button class="tabButton" data-tab="inflationTab">通膨指數</button>
@@ -84,6 +83,7 @@ ul{margin-left:20px;}
 
 <!-- 經濟小教室筆記 -->
 <section id="introTab" class="active">
+<h1>【註：指標公式為符合班級經濟，將真實指標進行特別調整】</h1>
 <h2>💰 班級經濟小教室（超白話版）</h2>
 
 <h3>🧠 一、錢有兩種狀態</h3>
@@ -186,7 +186,7 @@ ul{margin-left:20px;}
 
 <!-- 課稅模擬 -->
 <section id="taxTab">
-<h2>💸 課稅建議與再分配（完善版）</h2>
+<h2>💸 課稅建議與再分配</h2>
 <p>輸入班級數據，系統會建議課稅金額，計算班級基金與補助規則，<b>不顯示每位學生扣款明細</b>。</p>
 
 <div class="note">
@@ -355,38 +355,71 @@ tabs.forEach(tab=>{
 
 // 課稅模擬（不顯示每位學生扣款）
 function calculateAndDistributeTax(){
-    const moneySupply = parseFloat(document.getElementById('moneySupply').value)
-    const cpi = parseFloat(document.getElementById('cpi').value)
-    const gini = parseFloat(document.getElementById('gini').value)
-    const studentCount = parseInt(document.getElementById('studentCount').value)
-    const minCash = parseFloat(document.getElementById('minCash').value)
-    const assistThreshold = parseFloat(document.getElementById('assistThreshold').value)
+    const moneySupply = parseFloat(document.getElementById('moneySupply').value);
+    const cpi = parseFloat(document.getElementById('cpi').value);
+    const gini = parseFloat(document.getElementById('gini').value);
+    const studentCount = parseInt(document.getElementById('studentCount').value);
+    const minCash = parseFloat(document.getElementById('minCash').value);
+    const assistThreshold = parseFloat(document.getElementById('assistThreshold').value);
 
-    const totalTax = Math.round(moneySupply * 0.10 * (cpi/100) * gini)
+    // 1. 修正算式：如果 CPI 是負的（通縮），稅金算出來會小於 0，強制將稅金設為 0
+    let rawTax = moneySupply * 0.10 * (cpi / 100) * gini;
+    const totalTax = rawTax > 0 ? Math.round(rawTax) : 0;
 
-    let reason = "因為市場上錢太多（"+moneySupply+"）、物價漲幅高（CPI："+cpi+"%）、貧富差距偏高（吉尼係數："+gini+"），"
-    reason += "建議課稅金額為 "+totalTax+" 點，可作為班級基金或再分配補助。"
+    // 2. 動態判斷「貨幣狀態」 (用平均每人點數來抓感覺)
+    const avgMoney = moneySupply / studentCount;
+    let moneyStatus = "";
+    if (avgMoney > 500) moneyStatus = "市場上資金非常充沛";
+    else if (avgMoney >= 200) moneyStatus = "市場資金量適中";
+    else moneyStatus = "市場上資金偏少（處於緊縮）";
 
-    // 班級基金 = 課稅總額扣除補助（補助已內建規則）
-    const perStudentCash = Math.floor(moneySupply / studentCount)
-    let fund = 0
-    for(let i=0;i<studentCount;i++){
-        let deduction = Math.min(perStudentCash - minCash, Math.round(totalTax/studentCount))
-        deduction = Math.max(deduction, 0)
-        fund += deduction
+    // 3. 動態判斷「物價狀態」
+    let cpiStatus = "";
+    if (cpi >= 10) cpiStatus = "物價漲幅偏高";
+    else if (cpi > 0) cpiStatus = "物價微幅上漲";
+    else if (cpi === 0) cpiStatus = "物價完全持平";
+    else cpiStatus = "物價出現下跌（通貨緊縮）";
 
-        let remaining = perStudentCash - deduction
-        if(remaining < assistThreshold){
-            let assist = Math.min(Math.round(deduction * 0.5), assistThreshold - remaining)
-            fund -= assist
+    // 4. 動態判斷「貧富差距」
+    let giniStatus = "";
+    if (gini >= 0.5) giniStatus = "貧富差距較大";
+    else if (gini >= 0.3) giniStatus = "貧富差距在合理範圍";
+    else giniStatus = "財富分配非常平均";
+
+    // 5. 組合出聰明的「課稅緣由」
+    let reason = `🔍 <b>經濟診斷結果：</b>目前${moneyStatus}（總量 ${moneySupply} 點），且${cpiStatus}（CPI漲幅 ${cpi}%），加上${giniStatus}（吉尼係數 ${gini}）。`;
+
+    if (totalTax > 0) {
+        reason += `<br><br>💡 <b>行動建議：</b>為了替物價降溫並縮短貧富差距，建議向全班徵收共 ${totalTax} 點的稅金，放入班級基金進行財富再分配。`;
+    } else {
+        reason += `<br><br>💡 <b>行動建議：</b>由於目前沒有通膨壓力（或物價正在下跌），系統建議<b>「暫不課稅」</b>，讓學生把錢留在身上以刺激消費！`;
+    }
+
+    // 6. 計算班級基金 = 課稅總額扣除補助
+    const perStudentCash = Math.floor(moneySupply / studentCount);
+    let fund = 0;
+    
+    // 如果有課稅，才需要跑扣款與補助邏輯
+    if (totalTax > 0) {
+        for(let i=0; i<studentCount; i++){
+            let deduction = Math.min(perStudentCash - minCash, Math.round(totalTax/studentCount));
+            deduction = Math.max(deduction, 0); // 確保不扣到負數
+            fund += deduction;
+
+            let remaining = perStudentCash - deduction;
+            if(remaining < assistThreshold){
+                let assist = Math.min(Math.round(deduction * 0.5), assistThreshold - remaining);
+                fund -= assist;
+            }
         }
     }
 
-    document.getElementById('taxAmount').innerText = totalTax + " 點"
-    document.getElementById('averageTax').innerText = Math.round(totalTax / studentCount) + " 點"
-    document.getElementById('taxReason').innerText = reason
-    document.getElementById('classFund').innerText = fund + " 點"
-    document.getElementById('taxResult').style.display = 'block'
+    // 7. 將結果輸出到畫面上 (注意 taxReason 改用 innerHTML 讓排版更漂亮)
+    document.getElementById('taxAmount').innerText = totalTax + " 點";
+    document.getElementById('averageTax').innerText = (totalTax > 0 ? Math.round(totalTax / studentCount) : 0) + " 點";
+    document.getElementById('taxReason').innerHTML = reason; 
+    document.getElementById('classFund').innerText = fund + " 點";
+    document.getElementById('taxResult').style.display = 'block';
 }
 </script>
 
