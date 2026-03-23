@@ -262,6 +262,21 @@ nav.system-nav a:hover {
 <canvas id="stockpChart"></canvas>
 </div>
 
+<div class="section" id="fgSection">
+    <h2>🧠 市場心理：恐懼與貪婪指數 (Fear & Greed Index)</h2>
+    <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+            <div style="font-size: 60px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);" id="fgBigNumber">--</div>
+            <div style="font-size: 28px; font-weight: bold; background: #eee; padding: 10px 20px; border-radius: 30px;" id="fgBigText">--</div>
+        </div>
+        <p style="color: #7f8c8d; font-size: 16px;">( 綜合考量 RSI 動能與近期股價強弱，0 為極度恐懼，100 為極度貪婪 )</p>
+        
+        <div style="max-width: 500px; margin: auto; position: relative;">
+            <canvas id="fgGaugeChart"></canvas>
+        </div>
+    </div>
+</div>
+
 <div class="section">
 <h2>📊 通膨指數歷史折線圖</h2>
 <canvas id="inflationChart"></canvas>
@@ -711,6 +726,99 @@ function clearCustomMA() {
     customMaDatasets = []; // 清空小本本
     stockChartInstance.update();
 }
+
+/* ======================
+🔥 恐懼與貪婪指數 (Fear & Greed Index)
+====================== */
+// 1. 取得最新的有效 RSI
+let validRSI = rsiData.filter(v => v !== null);
+let currentRSI = validRSI.length > 0 ? parseFloat(validRSI[validRSI.length - 1]) : 50;
+
+// 2. 計算最近 10 天的價格動能 (RSV 概念)
+let recent10 = stockpHistory.slice(-10);
+let max10 = Math.max(...recent10);
+let min10 = Math.min(...recent10);
+let latestStockPrice = stockpHistory[stockpHistory.length - 1]; // 🌟 名字改成這個，避免跟上面的 currentPrice 打架
+
+let priceMomentum = 50; // 預設 50 (不漲不跌)
+if (max10 !== min10) {
+    priceMomentum = ((latestStockPrice - min10) / (max10 - min10)) * 100; // 🌟 這裡也跟著改
+}
+
+// 3. 綜合計算分數 (RSI 佔一半，價格動能佔一半)
+let fgIndex = Math.round((currentRSI + priceMomentum) / 2);
+
+// 4. 判斷燈號與文字狀態
+let fgText, fgColor;
+if (fgIndex <= 25) { fgText = "極度恐懼 🥶"; fgColor = "#e74c3c"; }       // 紅
+else if (fgIndex <= 45) { fgText = "恐懼 😨"; fgColor = "#e67e22"; }  // 橘
+else if (fgIndex <= 55) { fgText = "中立 😐"; fgColor = "#f1c40f"; }  // 黃
+else if (fgIndex <= 75) { fgText = "貪婪 😏"; fgColor = "#2ecc71"; }  // 淺綠
+else { fgText = "極度貪婪 🤑"; fgColor = "#27ae60"; }                 // 深綠
+
+// 5. 更新網頁上的數字與文字
+document.getElementById("fgBigNumber").innerText = fgIndex;
+document.getElementById("fgBigNumber").style.color = fgColor;
+document.getElementById("fgBigText").innerText = fgText;
+document.getElementById("fgBigText").style.color = fgColor;
+document.getElementById("fgBigText").style.backgroundColor = fgColor + "20"; // 加上透明度當背景
+
+// 6. 召喚超炫的半圓形儀表板 (使用自訂指針 Plugin)
+const gaugeNeedlePlugin = {
+    id: 'gaugeNeedle',
+    afterDatasetDraw(chart, args, options) {
+        const { ctx, chartArea: { left, width, height } } = chart;
+        ctx.save();
+        
+        // 算出圓心與指針角度
+        const dataTotal = 100;
+        const angle = Math.PI + (1 / dataTotal * fgIndex * Math.PI);
+        const cx = left + width / 2;
+        const cy = chart.getDatasetMeta(0).data[0].y; // 取得半圓底部的精確 Y 座標
+
+        // 畫指針本體
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, -5); 
+        ctx.lineTo(height * 0.7, 0); // 針的長度
+        ctx.lineTo(0, 5);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fill();
+
+        // 畫中間的圓形底座
+        ctx.translate(-cx, -cy);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fill();
+        ctx.restore();
+    }
+};
+
+// 繪製儀表板
+new Chart(document.getElementById("fgGaugeChart"), {
+    type: "doughnut",
+    data: {
+        labels: ["極度恐懼", "恐懼", "中立", "貪婪", "極度貪婪"],
+        datasets: [{
+            data: [25, 20, 10, 20, 25], // 五個區塊的寬度比例
+            backgroundColor: ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        circumference: 180, // 切一半變半圓
+        rotation: -90,      // 開頭轉到左邊
+        cutout: "60%",      // 甜甜圈內圈大小
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: false } // 關閉滑鼠游標提示 (當作純儀表板)
+        }
+    },
+    plugins: [gaugeNeedlePlugin]
+});
 </script>
 </body>
 </html>
