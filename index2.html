@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>🏦 大樹銀行經濟筆記</title>
+<title>🏦 大樹銀行經濟筆記（含課稅模擬）</title>
 <style>
 body{
     font-family:"Microsoft JhengHei";
@@ -68,7 +68,7 @@ ul{margin-left:20px;}
 </head>
 <body>
 
-<header>🏦 大樹銀行經濟筆記</header>
+<header>🏦 大樹銀行經濟筆記（含課稅模擬）</header>
 
 <nav>
     <button class="tabButton active" data-tab="introTab">經濟小教室</button>
@@ -78,12 +78,13 @@ ul{margin-left:20px;}
     <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
     <button class="tabButton" data-tab="gdpTab">GDP&成長率</button>
     <button class="tabButton" data-tab="taxTab">課稅模擬</button>
+    <button class="tabButton" style="background:#8e44ad;" data-tab="stockIntroTab">📈 股市揭密</button> 
     <a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟數據公告</a>
 </nav>
 
 <!-- 經濟小教室筆記 -->
 <section id="introTab" class="active">
-<h2>💰 班級經濟小教室</h2>
+<h2>💰 班級經濟小教室（超白話版）</h2>
 
 <h3>🧠 一、錢有兩種狀態</h3>
 <p>錢只有兩種：<br>
@@ -185,7 +186,7 @@ ul{margin-left:20px;}
 
 <!-- 課稅模擬 -->
 <section id="taxTab">
-<h2>💸 課稅建議與再分配</h2>
+<h2>💸 課稅建議與再分配（完善版）</h2>
 <p>輸入班級數據，系統會建議課稅金額，計算班級基金與補助規則，<b>不顯示每位學生扣款明細</b>。</p>
 
 <div class="note">
@@ -215,6 +216,43 @@ ul{margin-left:20px;}
 <p id="classFund"></p>
 </div>
 </section>
+
+<section id="stockIntroTab">
+    <h2>📈 大樹銀行股票：運作原理大公開</h2>
+    <p>各位投資人、打工族們好！你是否好奇，大樹銀行的「股票」到底是怎麼漲跌的？它真的只是運氣嗎？其實背後隱藏著一台<b>「超級擬真經濟引擎」</b>！</p>
+
+    <h3>⚙️ 股價的秘密——它到底怎麼算出來的？</h3>
+    <p>股票市場，就是經濟的體溫計。股價的漲跌絕對不是莊家擲骰子決定，它主要受到兩股力量互相拉扯：</p>
+
+    <div class="note">
+        <b>1. 經濟基本面（理性的現實）</b><br>
+        股價會忠實反映我們當下的經濟體質。<br>
+        <ul>
+            <li>🟢 <b>利多因素（推升股價）：GDP 成長！</b> 代表大樹經濟圈欣欣向榮，大家賺錢能力強，資金湧入股市。</li>
+            <li>🔴 <b>利空因素（壓抑股價）：通膨失控、CPI 暴漲！</b> 錢變得不值錢，購買力下降，市場資金緊縮，股價面臨下跌壓力。</li>
+        </ul>
+    </div>
+
+    <div class="note">
+        <b>2. 市場情緒（非理性的瘋狂）</b><br>
+        除了冷冰冰的數據，系統還加入了<b>「市場情緒」</b>。<br>
+        有時候經濟普普通通，但大家「盲目樂觀」瘋狂買進，股價就會狂飆；有時候經濟稍微差一點，市場卻陷入「恐慌性悲觀」，發生瘋狂拋售。<br>
+        <br>💡 <b>未來的股價 = 過去的趨勢慣性 + 經濟好壞 + 未知的市場情緒</b>
+    </div>
+
+    <h3>🛠️ 你的生存工具（技術分析）</h3>
+    <p>既然你無法提前預知明天的「市場情緒」，你可以善用公告板上的專業工具：</p>
+    <ul>
+        <li><b>均線 (MA5 / MA10 / MA20)：</b> 看出過去幾天的平均成本。股價如果在均線之上，代表趨勢偏多！</li>
+        <li><b>RSI (相對強弱指標)：</b> 幫你抓出「買過頭」還是「賣過頭」。如果 RSI 衝破 70，小心市場太熱準備回檔；跌破 30，也許是撿便宜的好時機。</li>
+        <li><b>MACD：</b> 幫你捕捉趨勢反轉的瞬間。</li>
+    </ul>
+
+    <p style="text-align:center; font-weight:bold; color:#e74c3c; font-size:18px; margin-top:20px;">
+        「多關注 GDP 成長、小心通膨怪獸、善用技術指標，祝你成為財富贏家！」
+    </p>
+</section>
+
 
 <script>
 // 切換頁籤
