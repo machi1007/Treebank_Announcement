@@ -97,12 +97,47 @@ canvas{
 </div>
 
 <div class="notice">
-📢 <b>銀行版本資訊公告</b>
-<p>版本：5.0</b></p>
-<b>【更新重點】</b>：
-<p>1.新增技術分析(MA20、自訂MA日數、RSI、MACD)。</p>
-<p>2.股價波動考量基本面、籌碼面、情緒面。</p>
-<p>3.更新經濟筆記(大樹股市揭密)。</p>
+    <details>
+        <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
+            🚀 大樹銀行版本更新日誌 (目前版本：v5.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+        </summary>
+        <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p><b>✅ v5.0 (最新)</b>：
+                <ul>
+                    <li><b>技術分析：</b>新增 MA20、自訂 MA 日數、RSI 溫度計、MACD 趨勢紅綠燈。</li>
+                    <li><b>核心模型：</b>股價波動正式考量「基本面、籌碼面、情緒面」。</li>
+                    <li><b>互動優化：</b>所有折線圖支援「滑鼠滾輪縮放」與「拖拽平移」。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v4.0</b>：
+                <ul>
+                    <li>新增 GDP 與 GDP 成長率動態追蹤。</li>
+                    <li>整合股價結算歷史數據表。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v3.0</b>：
+                <ul>
+                    <li>新增貨幣供給量監測。</li>
+                    <li>加入薪資獎金建議基準表。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v2.0</b>：
+                <ul>
+                    <li>引進 CPI 消費者物價指數。</li>
+                    <li>自動化通膨薪資計算公式。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v1.0</b>：
+                <ul>
+                    <li>大樹點數銀行正式營運，提供基礎通膨與薪資公告。</li>
+                </ul>
+            </p>
+        </div>
+    </details>
 </div>
 
 <h4><a href="https://ebank.ceag.kh.edu.tw/ebank/index2.php?bank=16370" target="_blank">💰 數位點數銀行</a></h4>
@@ -290,7 +325,7 @@ let gdpGrowth = (gdp - baseGDP)/baseGDP
 
 document.getElementById("inflation").innerText=inflation.toFixed(2)
 document.getElementById("salary").innerText=newSalary+" 點"
-document.getElementById("money").innerText=money+" 點"
+document.getElementById("money").innerText=money.toFixed(2)+" 點"
 document.getElementById("cpi").innerText=cpi.toFixed(1)+"%"
 document.getElementById("gdp").innerText=Math.round(gdp)
 document.getElementById("gdpGrowth").innerText=(gdpGrowth*100).toFixed(1)+"%"
@@ -349,7 +384,7 @@ historyData.forEach(h=>{
     <td>${h.inflation}</td>
     <td>${h.salary}</td>
     <td>${h.cpi}</td>
-    <td>${h.money}</td>
+    <td>${Number(h.money).toFixed(2)}</td>
     <td>${hGDP}</td>
     <td>${hGDPGrowth}</td>
     <td>${h.stockp}</td>
