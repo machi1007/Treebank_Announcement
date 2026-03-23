@@ -118,6 +118,7 @@ canvas{
                     <li><b>技術分析：</b>新增 MA20、自訂 MA 日數、RSI 溫度計、MACD 趨勢紅綠燈。</li>
                     <li><b>核心模型：</b>股價波動考量「基本面、籌碼面、情緒面」。</li>
                     <li><b>互動優化：</b>折線圖支援滑鼠滾輪與手指縮放、數據表支援滾輪滑動。</li>
+                    <li><b>名詞修正：</b>CPI以百分率呈現漲幅，故更名為物價上漲率(即CPI漲幅)。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
@@ -172,7 +173,7 @@ canvas{
     <div class="cardValue" id="salary"></div>
   </div>
   <div class="card">
-    <div class="cardTitle">消費者物價指數(CPI)</div>
+    <div class="cardTitle">物價上漲率<br>(CPI漲幅)</br></div>
     <div class="cardValue" id="cpi"></div>
   </div>
   <div class="card">
@@ -243,7 +244,7 @@ canvas{
 </div>
 
 <div class="section">
-<h2>📊 消費物價歷史折線圖</h2>
+<h2>📊 物價上漲率(cpi漲幅)歷史折線圖</h2>
 <canvas id="cpiChart"></canvas>
 </div>
 
@@ -270,7 +271,7 @@ canvas{
     <th>日期</th>
     <th>通膨指數</th>
     <th>建議週薪</th>
-    <th>CPI (%)</th>
+    <th>CPI漲幅 (%)</th>
     <th>貨幣供給量</th>
     <th>GDP</th>
     <th>GDP成長率(%)</th>
