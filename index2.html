@@ -74,7 +74,7 @@ ul{margin-left:20px;}
     <button class="tabButton active" data-tab="introTab">經濟小教室</button>
     <button class="tabButton" data-tab="inflationTab">通膨指數</button>
     <button class="tabButton" data-tab="salaryTab">建議薪資</button>
-    <button class="tabButton" data-tab="cpiTab">CPI</button>
+    <button class="tabButton" data-tab="cpiTab">CPI漲幅</button>
     <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
     <button class="tabButton" data-tab="gdpTab">GDP&成長率</button>
     <button class="tabButton" data-tab="taxTab">課稅模擬</button>
@@ -99,7 +99,7 @@ ul{margin-left:20px;}
 <ul>
 <li>💰 貨幣供給量：全班錢加起來</li>
 <li>💸 消費總額：全班總共花了多少錢</li>
-<li>🧾 CPI（物價）：平均價格 = 花的錢 ÷ 買的件數</li>
+<li>🧾 CPI漲幅（物價變動）：代表現在的東西比以前貴了多少百分比</li>
 <li>🧱 總資產：全班累積買了多少東西（價值）</li>
 </ul>
 
@@ -153,11 +153,11 @@ ul{margin-left:20px;}
 
 <!-- CPI -->
 <section id="cpiTab">
-<h2>🛒 消費者物價指數 (CPI)</h2>
-<p>CPI(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</p>
+<h2>🛒 物價上漲率 (CPI漲幅)</h2>
+<p>CPI漲幅(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</p>
 <ul>
-<li>CPI 上升 → 物價漲 → 錢變薄</li>
-<li>CPI 下降 → 物價穩定 → 錢值錢</li>
+<li>漲幅數字為正且越大 → 物價漲越兇 → 錢變薄（買不起東西）</li>
+<li>漲幅數字很小或為負 → 物價穩定或變便宜 → 錢很值錢（購買力強）</li>
 </ul>
 </section>
 
