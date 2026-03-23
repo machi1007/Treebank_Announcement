@@ -62,8 +62,18 @@ th,td{
   padding:10px;
   text-align:center;
 }
-th{
-  background:#ecf0f1;
+th {
+  background: #ecf0f1;
+  position: sticky; /* 讓表頭黏住 */
+  top: 0;           /* 黏在最上方 */
+  z-index: 1;       /* 確保表頭不會被資料蓋住 */
+}
+
+/* 👇 新增這個卷軸容器的設定 👇 */
+.table-scroll {
+  max-height: 350px; /* 表格最大高度，可依喜好調整，超過就會出現卷軸 */
+  overflow-y: auto;  /* 允許上下捲動 */
+  border-bottom: 1px solid #ccc; /* 補上底部框線讓視覺更完整 */
 }
 .value{
   color:#2980b9;
@@ -106,34 +116,38 @@ canvas{
                 <ul>
                     <li><b>技術分析：</b>新增 MA20、自訂 MA 日數、RSI 溫度計、MACD 趨勢紅綠燈。</li>
                     <li><b>核心模型：</b>股價波動正式考量「基本面、籌碼面、情緒面」。</li>
-                    <li><b>互動優化：</b>所有折線圖支援「滑鼠滾輪縮放」與「拖拽平移」。</li>
+                    <li><b>互動優化：</b>所有折線圖支援「滑鼠滾輪縮放」、數據表滾輪呈現。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
             <p><b>v4.0</b>：
                 <ul>
-                    <li>新增 GDP 與 GDP 成長率動態追蹤。</li>
-                    <li>整合股價結算歷史數據表。</li>
+                    <li><b>生產總值：</b>新增 GDP 與 GDP 成長率動態追蹤。</li>
+                    <li><b>圖表呈現：</b>整合各指標歷史數據表。</li>
+                    <li><b>經濟筆記：</b>補充經濟筆記各項內容。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
             <p><b>v3.0</b>：
                 <ul>
-                    <li>新增貨幣供給量監測。</li>
-                    <li>加入薪資獎金建議基準表。</li>
+                    <li><b>貨幣總量：</b>新增貨幣供給量監測。</li>
+                    <li><b>薪資變化：</b>依照通膨調整薪資獎金基準表。</li>
+                    <li><b>股價呈現：</b>依照點數銀行呈現結算股價。</li>
+                    <li><b>吉尼係數：</b>計算班級資金分布與差距。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
             <p><b>v2.0</b>：
                 <ul>
-                    <li>引進 CPI 消費者物價指數。</li>
-                    <li>自動化通膨薪資計算公式。</li>
+                    <li><b>平均物價：</b>計算班級CPI消費者物價指數。</li>
+                    <li><b>擴充系統：</b>建立子系統與經濟計算器。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
             <p><b>v1.0</b>：
                 <ul>
-                    <li>大樹點數銀行正式營運，提供基礎通膨與薪資公告。</li>
+                    <li><b>銀行利率：</b>點數銀行利率公告，提供活存利率與定存利率。</li>
+                    <li><b>通膨指數：</b>計算通膨指數了解當前經濟狀況。</li>
                 </ul>
             </p>
         </div>
@@ -249,18 +263,20 @@ canvas{
 
 <div class="section">
 <h2>📜 大樹銀行歷史數據表</h2>
-<table id="historyTable">
-<tr>
-<th>日期</th>
-<th>通膨指數</th>
-<th>建議週薪</th>
-<th>CPI (%)</th>
-<th>貨幣供給量</th>
-<th>GDP</th>
-<th>GDP成長率(%)</th>
-<th>股票結算價</th>
-</tr>
-</table>
+<div class="table-scroll">
+    <table id="historyTable">
+    <tr>
+    <th>日期</th>
+    <th>通膨指數</th>
+    <th>建議週薪</th>
+    <th>CPI (%)</th>
+    <th>貨幣供給量</th>
+    <th>GDP</th>
+    <th>GDP成長率(%)</th>
+    <th>股票結算價</th>
+    </tr>
+    </table>
+</div>
 </div>
 
 </div>
