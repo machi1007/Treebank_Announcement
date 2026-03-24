@@ -167,8 +167,7 @@ textarea{
 <button class="calcBtn" onclick="calculate()">⚙ 計算經濟</button>
 <button class="addBtn" onclick="addHistory()">📥 加入歷史</button>
     <a href="index4.html" target="_blank" style="background:#edae5c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">📝 開啟貨幣消費計算</a>
-    <a href="index.html" target="_blank" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟數據公告</a>
-
+    <a href="index.html" target="_blank" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到數據公告</a>
 
 <div class="dashboard">
 <div class="card">
@@ -188,12 +187,16 @@ textarea{
 <div class="cardValue" id="money"></div>
 </div>
 <div class="card">
-<div class="cardTitle">GDP</div>
-<div class="cardValue" id="gdp"></div>
+<div class="cardTitle">名目 GDP</div>
+<div class="cardValue" id="gdpNominal"></div>
+</div>
+<div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
+<div class="cardTitle">實質 GDP</div>
+<div class="cardValue" id="gdpReal" style="color:#16a085;"></div>
 </div>
 <div class="card">
-<div class="cardTitle">GDP成長率</div>
-<div class="cardValue" id="gdpGrowth"></div>
+<div class="cardTitle">實質成長率</div>
+<div class="cardValue" id="gdpGrowthReal"></div>
 </div>
 <div class="card">
   <div class="cardTitle">吉尼係數</div>
@@ -209,8 +212,8 @@ textarea{
 <th>薪資</th>
 <th>CPI</th>
 <th>貨幣</th>
-<th>GDP</th>
-<th>GDP成長</th>
+<th>名目GDP</th>
+<th>實質成長</th>
 <th>股價</th>
 <th>吉尼係數</th> </tr>
 </table>
@@ -241,26 +244,33 @@ function calculate(){
   let salary = Math.round(baseSalary*inflation*adjustRatio)
   let money = asset*students
   let cpi = ((price-basePrice)/basePrice)*100
-  let gdp = Math.round(salary*students + money*0.35)
+  
+  // 雙軌計算
   let baseGDP = baseSalary*students + baseAsset*students*0.35
-  let gdpGrowth = ((gdp - baseGDP)/baseGDP*100)
+  let nominalGdp = Math.round(salary*students + money*0.35)
+  let realGdp = Math.round(nominalGdp / inflation)
+  let nominalGdpGrowth = ((nominalGdp - baseGDP)/baseGDP*100)
+  let realGdpGrowth = ((realGdp - baseGDP)/baseGDP*100)
 
   document.getElementById("inflation").innerText = inflation.toFixed(2)
   document.getElementById("salary").innerText = salary
   document.getElementById("cpi").innerText = cpi.toFixed(1)+"%"
   document.getElementById("money").innerText = money.toFixed(2)
-  document.getElementById("gdp").innerText = gdp
-  document.getElementById("gdpGrowth").innerText = gdpGrowth.toFixed(1)+"%"
+  document.getElementById("gdpNominal").innerText = nominalGdp
+  document.getElementById("gdpReal").innerText = realGdp
+  document.getElementById("gdpGrowthReal").innerText = realGdpGrowth.toFixed(1)+"%"
 
-lastData={
+  // ⚠️ 寫入 historyData 仍保留名目數字，確保舊資料格式不會被破壞
+  lastData={
     inflation:inflation.toFixed(2),
     salary:salary,
     cpi:cpi.toFixed(1),
     money:money.toFixed(2),
-    gdp:gdp,
-    gdpGrowth:gdpGrowth.toFixed(1),
+    gdp:nominalGdp,
+    gdpGrowth:nominalGdpGrowth.toFixed(1),
     stock:stock,
-    gini:gini
+    gini:gini,
+    realGrowthPreview: realGdpGrowth.toFixed(1) // 僅供畫面預覽使用
   }
 }
 
@@ -283,7 +293,8 @@ function addHistory(){
     gdp:lastData.gdp,
     gdpGrowth:lastData.gdpGrowth,
     stockp:lastData.stock,
-    gini:lastData.gini
+    gini:lastData.gini,
+    realGrowthPreview: lastData.realGrowthPreview
   })
   render()
 }
@@ -292,14 +303,12 @@ function render(){
   let table = document.getElementById("historyTable")
   table.innerHTML=`
   <tr>
-  <th>日期</th><th>通膨</th><th>薪資</th><th>CPI</th><th>貨幣</th><th>GDP</th><th>GDP成長</th><th>股價</th><th>吉尼係數</th>
+  <th>日期</th><th>通膨</th><th>薪資</th><th>CPI</th><th>貨幣</th><th>名目GDP</th><th>實質成長</th><th>股價</th><th>吉尼係數</th>
   </tr>
   `
   let code="let historyData=[\n"
   historyData.forEach(h=>{
-    // 👇 判斷如果沒有填吉尼係數，就顯示 "-"
     let displayGini = h.gini !== null ? h.gini : "-";
-    // 👇 判斷如果沒有填吉尼係數，就不產生該屬性程式碼
     let codeGini = h.gini !== null ? `,gini:${h.gini}` : ""; 
 
     table.innerHTML+=`
@@ -310,12 +319,11 @@ function render(){
       <td>${h.cpi}</td>
       <td>${h.money}</td>
       <td>${h.gdp}</td>
-      <td>${h.gdpGrowth}</td>
+      <td>${h.realGrowthPreview}%</td>
       <td>${h.stockp}</td>
       <td>${displayGini}</td>
     </tr>
     `
-    // 👇 注意這裡把 ${codeGini} 加到大括號結束前
     code+=`{date:"${h.date}",inflation:${h.inflation},salary:${h.salary},cpi:${h.cpi},money:${h.money},gdp:${h.gdp},gdpGrowth:${h.gdpGrowth},stockp:${h.stockp}${codeGini}},\n`
   })
   code+="]"
