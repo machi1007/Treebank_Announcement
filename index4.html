@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>貨幣與消費計算器（終極經濟版）</title>
+<title>貨幣與消費計算器</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -163,7 +163,7 @@ function calculateTotals(){
   const balanceSorted=[...players].sort((a,b)=>b.balance-a.balance);
 
   // 吉尼
-  const giniValue=gini(players.map(p=>p.asset));
+  const giniValue=gini(players.map(p=>p.balance));
 
   let giniText="";
   if(giniValue<0.2) giniText="（超平均）";
@@ -171,10 +171,10 @@ function calculateTotals(){
   else if(giniValue<0.6) giniText="（差距偏大）";
   else giniText="（貧富差距嚴重）";
 
-  // 財富集中度
+  // 財富集中度 (改用總餘額計算)
   const top20=Math.ceil(n*0.2);
-  const topAssets=assetSorted.slice(0,top20).reduce((s,p)=>s+p.asset,0);
-  const concentration=((topAssets/totalAssets)*100).toFixed(1);
+  const topBalances=balanceSorted.slice(0,top20).reduce((s,p)=>s+p.balance,0);
+  const concentration=((topBalances/totalMoney)*100).toFixed(1);
 
   document.getElementById("totals").innerText=`
 貨幣供給量: ${totalMoney} ｜ 平均餘額: ${avgMoney}
@@ -209,8 +209,8 @@ CPI: ${avgPrice}
   makeChart("chart5","餘額分布",balanceSorted.map(p=>p.name),balanceSorted.map(p=>p.balance),'bar');
   makeChart("chart6","餘額排名",balanceSorted.map(p=>p.name),balanceSorted.map(p=>p.balance),'line');
 
-  // ===== 洛倫茲 =====
-  const lorenz=lorenzData(players.map(p=>p.asset));
+  // ===== 洛倫茲 (改用總餘額計算) =====
+  const lorenz=lorenzData(players.map(p=>p.balance));
   const labels=lorenz.map((_,i)=>(i/ (lorenz.length-1) *100).toFixed(0)+"%");
 
   const c=new Chart(document.getElementById("chart7"),{
