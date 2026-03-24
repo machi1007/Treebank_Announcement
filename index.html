@@ -157,6 +157,10 @@ nav.system-nav a:hover {
     <div class="cardTitle">股票結算價格</div>
     <div class="cardValue" id="stockp"></div>
   </div>
+  <div class="card">
+    <div class="cardTitle">吉尼係數</div>
+    <div class="cardValue" id="gini"></div>
+  </div>
 </div>
 
 <nav class="system-nav">
@@ -177,10 +181,17 @@ nav.system-nav a:hover {
 <div class="notice">
     <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v5.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v6.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p><b>✅ v5.0 (最新)</b>：
+            <p><b>✔v6.0 (最新)</b>：
+                <ul>
+                    <li><b>貪婪指標：</b>新增貪婪恐懼指標，提供經濟參考。</li>
+                    <li><b>吉尼係數：</b>將隱藏資產差距指數顯示於主頁並記錄。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v5.0</b>：
                 <ul>
                     <li><b>技術分析：</b>新增 MA20、自訂 MA 日數、RSI 溫度計、MACD 趨勢紅綠燈。</li>
                     <li><b>核心模型：</b>股價波動考量「基本面、籌碼面、情緒面」。</li>
@@ -308,6 +319,11 @@ nav.system-nav a:hover {
 </div>
 
 <div class="section">
+<h2>📊 吉尼係數歷史折線圖</h2>
+<canvas id="giniChart"></canvas>
+</div>
+
+<div class="section">
 <h2>📜 大樹銀行歷史數據表</h2>
 <div class="table-scroll">
     <table id="historyTable">
@@ -320,6 +336,7 @@ nav.system-nav a:hover {
     <th>GDP</th>
     <th>GDP成長率(%)</th>
     <th>股票結算價</th>
+    <th>吉尼係數</th> </tr>
     </tr>
     </table>
 </div>
@@ -346,6 +363,7 @@ let basePrice = 100
 let currentPrice = 199.2
 
 let stockp = 17.0
+let currentGini = 0.102;
 
 let salaryData = [
 {name:"每週薪資",base:30,note:"擔任職位認真負責"},
@@ -356,22 +374,22 @@ let salaryData = [
 ]
 
 let historyData=[
-{date:"2026-02-23",inflation:1.0,salary:0,cpi:0.0,money:5600,stockp:10},
-{date:"2026-02-26",inflation:1.0,salary:10,cpi:0.0,money:11200,stockp:10.4},
-{date:"2026-03-05",inflation:1.1,salary:10,cpi:30.0,money:12500,stockp:9.7},
-{date:"2026-03-06",inflation:1.2,salary:10,cpi:40.0,money:14000,stockp:10.2},
-{date:"2026-03-09",inflation:1.04,salary:10,cpi:20.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:11.1},
-{date:"2026-03-10",inflation:1.10,salary:10,cpi:20.0,money:15400,gdp:6118,gdpGrowth:6.6,stockp:11.4},
-{date:"2026-03-11",inflation:1.06,salary:10,cpi:50.0,money:14840,gdp:5894,gdpGrowth:2.7,stockp:12.3},
-{date:"2026-03-12",inflation:1.04,salary:10,cpi:55.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:13.5},
-{date:"2026-03-13",inflation:1.4,salary:15,cpi:114.3,money:15400,stockp:14.4},
-{date:"2026-03-16",inflation:1.2,salary:30,cpi:100.0,money:16800,stockp:15.7},
-{date:"2026-03-17",inflation:1.13,salary:27,cpi:100.0,money:15763.16,gdp:6273,gdpGrowth:9.3,stockp:15.2},
-{date:"2026-03-18",inflation:1.18,salary:28,cpi:1.6,money:16521.12,gdp:6566,gdpGrowth:14.4,stockp:16.6},
-{date:"2026-03-19",inflation:1.36,salary:33,cpi:1.6,money:19057.08,gdp:7594,gdpGrowth:32.3,stockp:15.4},
-{date:"2026-03-20",inflation:1.48,salary:35,cpi:40.6,money:20678,gdp:8217,gdpGrowth:43.2,stockp:16.9},
-{date:"2026-03-23",inflation:1.43,salary:34,cpi:84.8,money:19972.40,gdp:7942,gdpGrowth:38.4,stockp:17.7},
-{date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0}
+{date:"2026-02-23",inflation:1.0,salary:0,cpi:0.0,money:5600,stockp:10, gini: 0.000},
+{date:"2026-02-26",inflation:1.0,salary:10,cpi:0.0,money:11200,stockp:10.4, gini: 0.025},
+{date:"2026-03-05",inflation:1.1,salary:10,cpi:30.0,money:12500,stockp:9.7, gini: 0.038},
+{date:"2026-03-06",inflation:1.2,salary:10,cpi:40.0,money:14000,stockp:10.2, gini: 0.040},
+{date:"2026-03-09",inflation:1.04,salary:10,cpi:20.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:11.1, gini: 0.039},
+{date:"2026-03-10",inflation:1.10,salary:10,cpi:20.0,money:15400,gdp:6118,gdpGrowth:6.6,stockp:11.4, gini: 0.048},
+{date:"2026-03-11",inflation:1.06,salary:10,cpi:50.0,money:14840,gdp:5894,gdpGrowth:2.7,stockp:12.3, gini: 0.043},
+{date:"2026-03-12",inflation:1.04,salary:10,cpi:55.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:13.5, gini: 0.059},
+{date:"2026-03-13",inflation:1.4,salary:15,cpi:114.3,money:15400,stockp:14.4, gini: 0.053},
+{date:"2026-03-16",inflation:1.2,salary:30,cpi:100.0,money:16800,stockp:15.7, gini: 0.058},
+{date:"2026-03-17",inflation:1.13,salary:27,cpi:100.0,money:15763.16,gdp:6273,gdpGrowth:9.3,stockp:15.2, gini: 0.075},
+{date:"2026-03-18",inflation:1.18,salary:28,cpi:1.6,money:16521.12,gdp:6566,gdpGrowth:14.4,stockp:16.6, gini: 0.078},
+{date:"2026-03-19",inflation:1.36,salary:33,cpi:1.6,money:19057.08,gdp:7594,gdpGrowth:32.3,stockp:15.4, gini: 0.087},
+{date:"2026-03-20",inflation:1.48,salary:35,cpi:40.6,money:20678,gdp:8217,gdpGrowth:43.2,stockp:16.9, gini: 0.089},
+{date:"2026-03-23",inflation:1.43,salary:34,cpi:84.8,money:19972.40,gdp:7942,gdpGrowth:38.4,stockp:17.7, gini: 0.098},
+{date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0, gini: 0.102}
 ]
 
 /* ======================
@@ -395,6 +413,7 @@ document.getElementById("gdpGrowth").innerText=(gdpGrowth*100).toFixed(1)+"%"
 document.getElementById("savingRate").innerText=savingRate+"% / 每兩週"
 document.getElementById("fixedRate").innerText=fixedRate+"% / 每月"
 document.getElementById("stockp").innerText = stockp + " 點";
+document.getElementById("gini").innerText = currentGini;
 
 /* ======================
 薪資表
@@ -441,7 +460,10 @@ historyData.forEach(h=>{
   let hGDP = Math.round(h.salary*students + h.money*0.35)
   let hGDPGrowth = ((hGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
 
-  historyTable.innerHTML+=`
+  // 👇 判斷如果沒有這天的吉尼係數，就顯示 "-"
+  let hGini = h.gini !== undefined ? h.gini : "-";
+
+historyTable.innerHTML+=`
   <tr>
     <td>${h.date}</td>
     <td>${h.inflation}</td>
@@ -451,7 +473,7 @@ historyData.forEach(h=>{
     <td>${hGDP}</td>
     <td>${hGDPGrowth}</td>
     <td>${h.stockp}</td>
-  </tr>
+    <td>${hGini}</td> </tr>
   `
 })
 
@@ -466,6 +488,7 @@ let moneyHistory=historyData.map(h=>h.money)
 let stockpHistory=historyData.map(h=>h.stockp)
 let gdpHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
 let gdpGrowthHistory = gdpHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
+let giniHistory = historyData.map(h => h.gini !== undefined ? h.gini : null)
 
 let ma5=movingAverage(stockpHistory,5)
 let ma10=movingAverage(stockpHistory,10)
@@ -529,6 +552,18 @@ new Chart(document.getElementById("gdpGrowthChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"GDP成長率 (%)",data:gdpGrowthHistory,fill:false}]},
     options: commonZoomOptions // 👇 套用縮放
+})
+
+new Chart(document.getElementById("giniChart"),{
+    type:"line",
+    data:{labels:labels,datasets:[{
+        label:"吉尼係數",
+        data:giniHistory,
+        fill:false,
+        borderColor: "#9b59b6", // 設定一個特別的紫色
+        spanGaps: false // 確保前面沒有資料的時候不會亂連線
+    }]},
+    options: commonZoomOptions 
 })
 
 /* ======================
