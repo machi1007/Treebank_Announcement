@@ -234,7 +234,7 @@ function calculate(){
   let adjustRatio = Number(document.getElementById("adjustRatio").value)
   let basePrice = Number(document.getElementById("basePrice").value)
   let giniInput = document.getElementById("gini").value;
-  let gini = giniInput !== "" ? Number(giniInput).toFixed(2) : null;
+  let gini = giniInput !== "" ? Number(giniInput).toFixed(3) : null;
   document.getElementById("giniDisplay").innerText = gini !== null ? gini : "-";
 
   let inflation = asset/baseAsset
