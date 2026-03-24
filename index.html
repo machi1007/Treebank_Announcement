@@ -6,6 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+<script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
 <style>
 body{
   font-family:"Microsoft JhengHei";
@@ -65,16 +66,14 @@ th,td{
 }
 th {
   background: #ecf0f1;
-  position: sticky; /* 讓表頭黏住 */
-  top: 0;           /* 黏在最上方 */
-  z-index: 1;       /* 確保表頭不會被資料蓋住 */
+  position: sticky; 
+  top: 0;           
+  z-index: 1;       
 }
-
-/* 👇 新增這個卷軸容器的設定 👇 */
 .table-scroll {
-  max-height: 350px; /* 表格最大高度，可依喜好調整，超過就會出現卷軸 */
-  overflow-y: auto;  /* 允許上下捲動 */
-  border-bottom: 1px solid #ccc; /* 補上底部框線讓視覺更完整 */
+  max-height: 350px; 
+  overflow-y: auto;  
+  border-bottom: 1px solid #ccc; 
 }
 .value{
   color:#2980b9;
@@ -90,8 +89,6 @@ th {
 canvas{
   margin-top:20px;
 }
-
-/* 子系統導覽列按鈕樣式 */
 nav.system-nav {
   display: flex;
   flex-wrap: wrap;
@@ -101,21 +98,44 @@ nav.system-nav {
   margin-top: 10px;
 }
 nav.system-nav a {
-  background: #34495e; /* 沉穩的深藍色 */
+  background: #34495e; 
   color: white;
   text-decoration: none;
   padding: 12px 25px;
   border-radius: 8px;
   font-size: 18px;
   font-weight: bold;
-  transition: all 0.3s ease; /* 讓變色跟移動有滑順動畫 */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 微立體陰影 */
+  transition: all 0.3s ease; 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
 }
 nav.system-nav a:hover {
-  background: #1abc9c; /* 滑過時變成亮綠色 */
-  transform: translateY(-3px); /* 滑過時按鈕會微微往上浮 */
+  background: #1abc9c; 
+  transform: translateY(-3px); 
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* AI 知識彩蛋視窗樣式 */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 1000;
+    display: none; justify-content: center; align-items: center;
+    backdrop-filter: blur(3px);
+}
+.modal-content {
+    background: white; padding: 30px; border-radius: 12px;
+    max-width: 500px; width: 90%; line-height: 1.6;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    position: relative;
+}
+.close-btn {
+    background: #e74c3c; color: white; border: none;
+    padding: 10px 20px; border-radius: 5px; cursor: pointer;
+    font-size: 16px; margin-top: 20px; font-weight: bold;
+    width: 100%; transition: 0.2s;
+}
+.close-btn:hover { background: #c0392b; }
+
 </style>
 </head>
 <body>
@@ -158,13 +178,23 @@ nav.system-nav a:hover {
     <div class="cardValue" id="gdpGrowth"></div>
   </div>
   <div class="card">
-    <div class="cardTitle">股票結算價格</div>
-    <div class="cardValue" id="stockp"></div>
-  </div>
-  <div class="card">
     <div class="cardTitle">吉尼係數</div>
     <div class="cardValue" id="gini"></div>
     <div id="giniStatus" style="font-size:16px; font-weight:bold; margin-top:8px;"></div>
+  </div>
+  <div class="card">
+    <div class="cardTitle">股票結算價格</div>
+    <div class="cardValue" id="stockp"></div>
+  </div>
+  <div class="card" style="background: #fdf2e9; border: 2px solid #e67e22; position: relative;">
+    <div style="position:absolute; top:-10px; right:-10px; background:#e74c3c; color:white; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:bold; animation: blink 1.5s infinite;">AI 預測中</div>
+    <div class="cardTitle">
+        🔮 明日股價預測
+        <span id="aiHelpBtn" style="cursor:pointer; background:#3498db; color:white; border-radius:50%; padding:2px 8px; font-size:14px; margin-left:5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="為什麼我的預測跟別人不一樣？">?</span>
+        <br><span style="font-size:14px; color:#d35400;">(LSTM 神經網路) 
+        <span onclick="clearAIPrediction()" style="cursor:pointer; font-size:14px;" title="清除平板記憶，重新訓練">🔄</span></span>
+    </div>
+    <div class="cardValue" id="aiPrediction" style="color:#e67e22; font-size:24px;">運算中...</div>
   </div>
 </div>
 
@@ -199,6 +229,7 @@ nav.system-nav a:hover {
                     <li><b>實質購買力：</b>新增「實質薪資」儀表板與雙軌折線圖，揭示通膨影響下的真實購買力。</li>
                     <li><b>自動分析系統：</b>新增政策建議系統，自動根據通膨、薪資與貧富差距給予施政方向。</li>
                     <li><b>社會狀態燈號：</b>將吉尼係數具象化為彩色狀態警示，即時監測班級財富分配健康度。</li>
+                    <li><b>AI模擬預測：</b>導入 LSTM 神經網路進行股價邊緣運算預測。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
@@ -362,11 +393,27 @@ nav.system-nav a:hover {
 
 </div>
 
+<div class="modal-overlay" id="aiModal">
+    <div class="modal-content">
+        <h2 style="margin-top:0; color:#2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;">🤖 為什麼大家的預測不一樣？</h2>
+        
+        <p style="font-size: 18px;"><b>1. 邊緣運算 (Edge Computing)</b></p>
+        <p style="color: #555;">大樹銀行的 AI 不是躲在遙遠的Google機房裡，而是<b>直接在你的平板裡「當場」運算</b>的！每台平板都是一顆獨立的數位大腦。</p>
+        
+        <p style="font-size: 18px; margin-top: 20px;"><b>2. 隨機初始權重 (Random Weights)</b></p>
+        <p style="color: #555;">真實的機器學習一開始會從「亂猜」起步，再透過歷史數據不斷修正（剛剛你的平板在一秒內訓練了 1500 次！）。因為每台設備一開始的「起跑點」不同，最後收斂的結果就會有微小差異。</p>
+        
+        <div style="background: #fdf2e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #e67e22;">
+            <span style="color:#d35400; font-weight:bold; font-size: 18px;">✨ 這是真正的機器學習！</span><br>
+            <span style="color:#e67e22;">不是騙人的虛構邏輯程式喔！如果你想讓 AI 重新思考，可以點擊預測標題旁邊的「🔄」符號。</span>
+        </div>
+        
+        <button class="close-btn" onclick="document.getElementById('aiModal').style.display='none'">太酷了！我知道了</button>
+    </div>
+</div>
+
 <script>
 
-/* ======================
-老師修改區
-====================== */
 /* ======================
 老師修改區
 ====================== */
@@ -411,10 +458,8 @@ let historyData=[
 /* ======================
 經濟計算 (自動抓取最新歷史資料)
 ====================== */
-// 1. 抓取 historyData 的最後一筆資料
 let latestData = historyData[historyData.length - 1];
 
-// 2. 直接從最新資料中讀取數值
 let inflation = latestData.inflation;
 let newSalary = latestData.salary;
 let money = latestData.money;
@@ -424,10 +469,8 @@ let gdpGrowth = latestData.gdpGrowth;
 let stockp = latestData.stockp;
 let currentGini = latestData.gini !== undefined ? latestData.gini : "-";
 
-// 🔥 新增：計算實質購買力 (名目薪資 / 通膨指數)
 let currentRealSalary = (newSalary / inflation).toFixed(1); 
 
-// 🔥 新增：判斷吉尼係數燈號與狀態
 let giniText = "";
 let giniColor = "";
 if (currentGini === "-") {
@@ -444,17 +487,15 @@ if (currentGini === "-") {
     giniText = "☠️ 資產極端集中"; giniColor = "#8e44ad";
 }
 
-// 🔥 新增：生成大樹央行 AI 政策建議
 let adviceList = [];
 if (inflation >= 1.3) adviceList.push("<b>【抑制通膨】</b> 市場熱錢氾濫，建議「調升存款利率」吸引資金回流銀行，或暫緩發放加碼獎金。");
 if (currentGini >= 0.4) adviceList.push("<b>【財富重分配】</b> 貧富差距開始擴大，建議開徵「富人稅」或提高基層職務的基本薪資，避免底層破產。");
 if (currentRealSalary < 25 && inflation > 1.1) adviceList.push("<b>【民生警告】</b> 實質購買力正在下降！雖然薪水變多，但物價漲更兇，學生可能會覺得錢不夠用。");
 if (adviceList.length === 0) adviceList.push("<b>【穩定發展】</b> 目前各項經濟指標均在健康範圍，建議維持現有政策，繼續觀察市場動向。");
 
-// 3. 更新到網頁最上方的儀表板卡片
 document.getElementById("inflation").innerText = inflation;
 document.getElementById("salary").innerText = newSalary + " 點";
-document.getElementById("realSalary").innerText = currentRealSalary + " 點"; // 更新實質薪資
+document.getElementById("realSalary").innerText = currentRealSalary + " 點"; 
 document.getElementById("money").innerText = Number(money).toFixed(2) + " 點";
 document.getElementById("cpi").innerText = cpi + "%";
 document.getElementById("gdp").innerText = gdp;
@@ -464,9 +505,9 @@ document.getElementById("fixedRate").innerText = fixedRate + "% / 每月";
 document.getElementById("stockp").innerText = stockp + " 點";
 
 document.getElementById("gini").innerText = currentGini;
-document.getElementById("giniStatus").innerText = giniText; // 更新吉尼燈號
+document.getElementById("giniStatus").innerText = giniText; 
 document.getElementById("giniStatus").style.color = giniColor;
-document.getElementById("aiAdvice").innerHTML = adviceList.join("<br><br>"); // 更新 AI 建議
+document.getElementById("aiAdvice").innerHTML = adviceList.join("<br><br>"); 
 
 /* ======================
 薪資表
@@ -512,8 +553,6 @@ let baseGDPForHistory = baseSalary*students + baseAsset*students*0.35
 historyData.forEach(h=>{
   let hGDP = Math.round(h.salary*students + h.money*0.35)
   let hGDPGrowth = ((hGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
-
-  // 👇 判斷如果沒有這天的吉尼係數，就顯示 "-"
   let hGini = h.gini !== undefined ? h.gini : "-";
 
 historyTable.innerHTML+=`
@@ -546,13 +585,12 @@ let giniHistory = historyData.map(h => h.gini !== undefined ? h.gini : null)
 let ma5=movingAverage(stockpHistory,5)
 let ma10=movingAverage(stockpHistory,10)
 
-// 💡 【新增】這裡我們把縮放和平移的功能「打包」起來，這樣下面每個圖表只要呼叫它就好，不用重複寫！
 const commonZoomOptions = {
     responsive: true,
     plugins: {
         zoom: {
-            pan: { enabled: true, mode: "x" }, // 允許左右拖曳平移
-            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: "x" } // 允許滾輪與雙指縮放
+            pan: { enabled: true, mode: "x" }, 
+            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: "x" } 
         }
     }
 };
@@ -560,7 +598,7 @@ const commonZoomOptions = {
 new Chart(document.getElementById("inflationChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]},
-    options: commonZoomOptions // 👇 把設定套用進來
+    options: commonZoomOptions 
 })
 
 let realSalaryHistory = historyData.map(h => (h.salary / h.inflation).toFixed(1));
@@ -581,7 +619,7 @@ new Chart(document.getElementById("salaryChart"),{
                 data:realSalaryHistory,
                 borderColor: "#1abc9c",
                 borderWidth: 3,
-                borderDash: [5, 5], // 用虛線區隔
+                borderDash: [5, 5], 
                 fill:false
             }
         ]
@@ -592,16 +630,15 @@ new Chart(document.getElementById("salaryChart"),{
 new Chart(document.getElementById("cpiChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"CPI漲幅(%)",data:cpiHistory,fill:false}]},
-    options: commonZoomOptions // 👇 套用縮放
+    options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("moneyChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"貨幣供給量",data:moneyHistory,fill:false}]},
-    options: commonZoomOptions // 👇 套用縮放
+    options: commonZoomOptions 
 })
 
-// 股價圖原本就寫在裡面，這裡我們也改成套用這個共用設定，讓程式碼更乾淨
 new Chart(document.getElementById("stockpChart"),{
     type:"line",
     data:{
@@ -612,19 +649,19 @@ new Chart(document.getElementById("stockpChart"),{
             {label:"MA10",data:ma10,fill:false}
         ]
     },
-    options: commonZoomOptions // 👇 套用縮放
+    options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("gdpChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"GDP",data:gdpHistory,fill:false}]},
-    options: commonZoomOptions // 👇 套用縮放
+    options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("gdpGrowthChart"),{
     type:"line",
     data:{labels:labels,datasets:[{label:"GDP成長率 (%)",data:gdpGrowthHistory,fill:false}]},
-    options: commonZoomOptions // 👇 套用縮放
+    options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("giniChart"),{
@@ -633,8 +670,8 @@ new Chart(document.getElementById("giniChart"),{
         label:"吉尼係數[資產平均(<0.2),合理差距(<0.4),差距偏大(<0.6),差距嚴重(<0.8),資產集中(>=0.8)]",
         data:giniHistory,
         fill:false,
-        borderColor: "#9b59b6", // 設定一個特別的紫色
-        spanGaps: false // 確保前面沒有資料的時候不會亂連線
+        borderColor: "#9b59b6", 
+        spanGaps: false 
     }]},
     options: commonZoomOptions 
 })
@@ -655,33 +692,24 @@ text="🔥 超級通膨：市場資金過多"
 document.getElementById("announcement").innerText=text
 
 /* ======================
-🔥 技術指標（外掛，不動原本）
+🔥 技術指標
 ====================== */
-
-// ===== MA20 =====
 let ma20 = movingAverage(stockpHistory, 20);
 
 function calcRSI(data, period=5){
   let gains=[], losses=[];
-  // 1. 先算出每天的漲跌幅
   for(let i=1; i<data.length; i++){
     let diff = data[i] - data[i-1];
     gains.push(diff > 0 ? diff : 0);
     losses.push(diff < 0 ? -diff : 0);
   }
-  
   let rsi=[];
-  // 2. 【關鍵修正】前 period 天因為資料不足，填入 null，讓陣列長度與日期對齊！
   for(let i=0; i<period; i++){
     rsi.push(null);
   }
-
-  // 3. 從第 period 天開始往後計算 RSI
   for(let i=period; i<data.length; i++){
-    // 抓取過去 5 天的漲跌
     let avgGain = gains.slice(i-period, i).reduce((a,b)=>a+b, 0) / period;
     let avgLoss = losses.slice(i-period, i).reduce((a,b)=>a+b, 0) / period;
-    
     let rs = avgLoss === 0 ? 100 : avgGain/avgLoss;
     rsi.push((100 - (100 / (1 + rs))).toFixed(1));
   }
@@ -689,7 +717,6 @@ function calcRSI(data, period=5){
 }
 let rsiData = calcRSI(stockpHistory);
 
-// ===== MACD =====
 function EMA(data, period){
   let k = 2 / (period + 1);
   let ema = [data[0]];
@@ -709,10 +736,8 @@ function calcMACD(data){
 }
 let macdData = calcMACD(stockpHistory);
 
-// ===== 取得原本股價圖（重點）=====
 let stockChartInstance = Chart.getChart("stockpChart");
 
-// ===== MA開關 =====
 document.getElementById("ma5Toggle").onchange = function() {
   stockChartInstance.data.datasets[1].hidden = !this.checked;
   stockChartInstance.update();
@@ -737,7 +762,6 @@ document.getElementById("ma20Toggle").onchange = function() {
   stockChartInstance.update();
 };
 
-// ===== RSI =====
 document.getElementById("rsiToggle").onchange = function() {
   if (this.checked) {
     if (!document.getElementById("rsiChart")) {
@@ -750,7 +774,6 @@ document.getElementById("rsiToggle").onchange = function() {
       new Chart(document.getElementById("rsiChart"), {
         type: "line",
         data: { labels: labels, datasets: [{ label: "RSI", data: rsiData }] },
-        // 👇 RSI 圖表也套用共用的縮放設定，再加上 RSI 專屬的 Y 軸限制
         options: {
           ...commonZoomOptions,
           scales: { y: { min: 0, max: 100 } }
@@ -762,7 +785,6 @@ document.getElementById("rsiToggle").onchange = function() {
   }
 };
 
-// ===== MACD =====
 document.getElementById("macdToggle").onchange = function() {
   if (this.checked) {
     if (!document.getElementById("macdChart")) {
@@ -782,7 +804,7 @@ document.getElementById("macdToggle").onchange = function() {
             { label: "柱狀", data: macdData.hist }
           ]
         },
-        options: commonZoomOptions // 👇 MACD 圖表也成功套用縮放設定！
+        options: commonZoomOptions 
       });
     }
   } else {
@@ -790,13 +812,10 @@ document.getElementById("macdToggle").onchange = function() {
   }
 };
 
-// ===== 讓學生自訂 MA 的專屬功能 =====
-let customMaDatasets = []; // 用來記住學生自己加了哪些線
+let customMaDatasets = []; 
 
 function addCustomMA() {
     let period = parseInt(document.getElementById("customMaInput").value);
-    
-    // 檢查學生有沒有亂輸入
     if(isNaN(period) || period <= 0) {
         alert("⚠️ 魔法失敗：請輸入大於 0 的天數喔！");
         return;
@@ -805,97 +824,78 @@ function addCustomMA() {
         alert("⚠️ 魔法失敗：輸入的天數不能超過大樹銀行開張的總天數喔！");
         return;
     }
-
-    // 幫新線條準備酷炫的顏色（會輪流換顏色）
     let colors = ["#8e44ad", "#e67e22", "#16a085", "#c0392b", "#2980b9"];
     let color = colors[customMaDatasets.length % colors.length];
-
-    // 呼叫你原本寫好的計算函數
     let customMaData = movingAverage(stockpHistory, period);
-
-    // 打造這條新的資料線（設定成虛線，方便跟預設的 MA 區分）
     let newDataset = {
         label: "自訂 MA" + period,
         data: customMaData,
         borderColor: color,
-        borderDash: [5, 5], // 虛線效果
+        borderDash: [5, 5], 
         borderWidth: 2,
         fill: false
     };
-
-    // 把線加到圖表裡
     stockChartInstance.data.datasets.push(newDataset);
-    customMaDatasets.push(newDataset); // 記在小本本裡，之後才能清除
+    customMaDatasets.push(newDataset); 
     stockChartInstance.update();
 }
 
 function clearCustomMA() {
-    // 把圖表裡的線，過濾掉「學生自訂」的線（只保留原來的股價、MA5、MA10 等）
     stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(ds => !customMaDatasets.includes(ds));
-    customMaDatasets = []; // 清空小本本
+    customMaDatasets = []; 
     stockChartInstance.update();
 }
 
 /* ======================
-🔥 恐懼與貪婪指數 (Fear & Greed Index)
+🔥 恐懼與貪婪指數
 ====================== */
-// 1. 取得最新的有效 RSI
 let validRSI = rsiData.filter(v => v !== null);
 let currentRSI = validRSI.length > 0 ? parseFloat(validRSI[validRSI.length - 1]) : 50;
 
-// 2. 計算最近 10 天的價格動能 (RSV 概念)
 let recent10 = stockpHistory.slice(-10);
 let max10 = Math.max(...recent10);
 let min10 = Math.min(...recent10);
-let latestStockPrice = stockpHistory[stockpHistory.length - 1]; // 🌟 名字改成這個，避免跟上面的 currentPrice 打架
+let latestStockPrice = stockpHistory[stockpHistory.length - 1]; 
 
-let priceMomentum = 50; // 預設 50 (不漲不跌)
+let priceMomentum = 50; 
 if (max10 !== min10) {
-    priceMomentum = ((latestStockPrice - min10) / (max10 - min10)) * 100; // 🌟 這裡也跟著改
+    priceMomentum = ((latestStockPrice - min10) / (max10 - min10)) * 100; 
 }
 
-// 3. 綜合計算分數 (RSI 佔一半，價格動能佔一半)
 let fgIndex = Math.round((currentRSI + priceMomentum) / 2);
 
-// 4. 判斷燈號與文字狀態
 let fgText, fgColor;
-if (fgIndex <= 25) { fgText = "極度恐懼 🥶"; fgColor = "#e74c3c"; }       // 紅
-else if (fgIndex <= 45) { fgText = "恐懼 😨"; fgColor = "#e67e22"; }  // 橘
-else if (fgIndex <= 55) { fgText = "中立 😐"; fgColor = "#f1c40f"; }  // 黃
-else if (fgIndex <= 75) { fgText = "貪婪 😏"; fgColor = "#2ecc71"; }  // 淺綠
-else { fgText = "極度貪婪 🤑"; fgColor = "#27ae60"; }                 // 深綠
+if (fgIndex <= 25) { fgText = "極度恐懼 🥶"; fgColor = "#e74c3c"; }       
+else if (fgIndex <= 45) { fgText = "恐懼 😨"; fgColor = "#e67e22"; }  
+else if (fgIndex <= 55) { fgText = "中立 😐"; fgColor = "#f1c40f"; }  
+else if (fgIndex <= 75) { fgText = "貪婪 😏"; fgColor = "#2ecc71"; }  
+else { fgText = "極度貪婪 🤑"; fgColor = "#27ae60"; }                 
 
-// 5. 更新網頁上的數字與文字
 document.getElementById("fgBigNumber").innerText = fgIndex;
 document.getElementById("fgBigNumber").style.color = fgColor;
 document.getElementById("fgBigText").innerText = fgText;
 document.getElementById("fgBigText").style.color = fgColor;
-document.getElementById("fgBigText").style.backgroundColor = fgColor + "20"; // 加上透明度當背景
+document.getElementById("fgBigText").style.backgroundColor = fgColor + "20"; 
 
-// 6. 召喚超炫的半圓形儀表板 (使用自訂指針 Plugin)
 const gaugeNeedlePlugin = {
     id: 'gaugeNeedle',
     afterDatasetDraw(chart, args, options) {
         const { ctx, chartArea: { left, width, height } } = chart;
         ctx.save();
-        
-        // 算出圓心與指針角度
         const dataTotal = 100;
         const angle = Math.PI + (1 / dataTotal * fgIndex * Math.PI);
         const cx = left + width / 2;
-        const cy = chart.getDatasetMeta(0).data[0].y; // 取得半圓底部的精確 Y 座標
+        const cy = chart.getDatasetMeta(0).data[0].y; 
 
-        // 畫指針本體
         ctx.translate(cx, cy);
         ctx.rotate(angle);
         ctx.beginPath();
         ctx.moveTo(0, -5); 
-        ctx.lineTo(height * 0.7, 0); // 針的長度
+        ctx.lineTo(height * 0.7, 0); 
         ctx.lineTo(0, 5);
         ctx.fillStyle = '#2c3e50';
         ctx.fill();
 
-        // 畫中間的圓形底座
         ctx.translate(-cx, -cy);
         ctx.beginPath();
         ctx.arc(cx, cy, 12, 0, Math.PI * 2);
@@ -905,29 +905,128 @@ const gaugeNeedlePlugin = {
     }
 };
 
-// 繪製儀表板
 new Chart(document.getElementById("fgGaugeChart"), {
     type: "doughnut",
     data: {
         labels: ["極度恐懼", "恐懼", "中立", "貪婪", "極度貪婪"],
         datasets: [{
-            data: [25, 20, 10, 20, 25], // 五個區塊的寬度比例
+            data: [25, 20, 10, 20, 25], 
             backgroundColor: ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"],
             borderWidth: 0
         }]
     },
     options: {
         responsive: true,
-        circumference: 180, // 切一半變半圓
-        rotation: -90,      // 開頭轉到左邊
-        cutout: "60%",      // 甜甜圈內圈大小
+        circumference: 180, 
+        rotation: -90,      
+        cutout: "60%",      
         plugins: {
             legend: { position: 'bottom' },
-            tooltip: { enabled: false } // 關閉滑鼠游標提示 (當作純儀表板)
+            tooltip: { enabled: false } 
         }
     },
     plugins: [gaugeNeedlePlugin]
 });
+
+
+/* ======================
+🔥 彩蛋與手動清除記憶功能
+====================== */
+document.getElementById('aiHelpBtn').onclick = function() {
+    document.getElementById('aiModal').style.display = 'flex';
+};
+
+window.onclick = function(event) {
+    let modal = document.getElementById('aiModal');
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+
+function clearAIPrediction() {
+    let latestDate = labels[labels.length - 1]; 
+    let cacheKey = "real_ai_prediction_" + latestDate;
+    
+    localStorage.removeItem(cacheKey);
+    
+    alert("✨ 已清除這台設備的 AI 記憶！\n按下確定後，網頁將重新整理並讓 AI 重新思考預測結果。");
+    location.reload(); 
+}
+
+/* ======================
+🧠 真實 AI 模型：Brain.js 邊緣運算版 
+====================== */
+setTimeout(() => {
+    console.log("🧠 啟動獨立 AI 數位大腦 (邊緣運算)...");
+
+    let latestDate = labels[labels.length - 1]; 
+    let cacheKey = "real_ai_prediction_" + latestDate;
+    
+    let finalPredictedPrice = localStorage.getItem(cacheKey);
+
+    let aiChartData = new Array(stockpHistory.length).fill(null);
+    aiChartData[stockpHistory.length - 1] = stockpHistory[stockpHistory.length - 1]; 
+    let extendedLabels = [...labels, "AI預測"]; 
+
+    if (!finalPredictedPrice) {
+        console.log("⚡ 記憶體無資料，開始在本地端進行 1500 次機器學習...");
+        let rawData = historyData.map(h => h.stockp);
+        let maxPrice = 50; 
+        let trainingData = rawData.map(price => price / maxPrice);
+
+        let net = new brain.recurrent.LSTMTimeStep({
+            inputSize: 1,
+            hiddenLayers: [10],
+            outputSize: 1
+        });
+
+        net.train([trainingData], { iterations: 1500, errorThresh: 0.015 });
+
+        let predictedNormalized = net.run(trainingData);
+        let rawPredictedPrice = predictedNormalized * maxPrice;
+
+        let latestPrice = stockpHistory[stockpHistory.length - 1];
+        let maxLimit = latestPrice * 1.10;
+        let minLimit = latestPrice * 0.90;
+
+        if (rawPredictedPrice > maxLimit) {
+            finalPredictedPrice = maxLimit;
+            console.log("⚠️ AI 預測過於樂觀，觸發漲停限制");
+        } else if (rawPredictedPrice < minLimit) {
+            finalPredictedPrice = minLimit;
+            console.log("⚠️ AI 預測過於悲觀，觸發跌停限制");
+        } else {
+            finalPredictedPrice = rawPredictedPrice; 
+        }
+
+        finalPredictedPrice = finalPredictedPrice.toFixed(1);
+        
+        localStorage.setItem(cacheKey, finalPredictedPrice);
+        console.log("💾 本機 AI 預測結果已鎖定：", finalPredictedPrice);
+    } else {
+        console.log("💡 讀取本機今日已定案的 AI 預測：", finalPredictedPrice);
+    }
+
+    document.getElementById("aiPrediction").innerText = finalPredictedPrice + " 點";
+
+    aiChartData.push(finalPredictedPrice); 
+    stockChartInstance.data.labels = extendedLabels;
+
+    stockChartInstance.data.datasets.push({
+        label: "🤖 AI 邊緣運算預測",
+        data: aiChartData,
+        borderColor: "#e67e22",
+        borderWidth: 3,
+        borderDash: [5, 5],
+        pointBackgroundColor: "#e74c3c",
+        pointRadius: 6,
+        fill: false
+    });
+
+    stockChartInstance.update();
+
+}, 1500);
+
 </script>
 </body>
 </html>
