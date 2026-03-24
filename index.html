@@ -349,8 +349,10 @@ nav.system-nav a:hover {
 /* ======================
 老師修改區
 ====================== */
+/* ======================
+老師修改區
+====================== */
 let baseAsset = 500
-let currentAsset = 698.6
 let students = 28
 
 let baseSalary = 30
@@ -360,10 +362,6 @@ let savingRate = 1.5
 let fixedRate = 5
 
 let basePrice = 100
-let currentPrice = 199.2
-
-let stockp = 17.0
-let currentGini = 0.102;
 
 let salaryData = [
 {name:"每週薪資",base:30,note:"擔任職位認真負責"},
@@ -377,41 +375,46 @@ let historyData=[
 {date:"2026-02-23",inflation:1.0,salary:0,cpi:0.0,money:5600,stockp:10, gini: 0.000},
 {date:"2026-02-26",inflation:1.0,salary:10,cpi:0.0,money:11200,stockp:10.4, gini: 0.025},
 {date:"2026-03-05",inflation:1.1,salary:10,cpi:30.0,money:12500,stockp:9.7, gini: 0.038},
-{date:"2026-03-06",inflation:1.2,salary:10,cpi:40.0,money:14000,stockp:10.2, gini: 0.040},
-{date:"2026-03-09",inflation:1.04,salary:10,cpi:20.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:11.1, gini: 0.039},
-{date:"2026-03-10",inflation:1.10,salary:10,cpi:20.0,money:15400,gdp:6118,gdpGrowth:6.6,stockp:11.4, gini: 0.048},
-{date:"2026-03-11",inflation:1.06,salary:10,cpi:50.0,money:14840,gdp:5894,gdpGrowth:2.7,stockp:12.3, gini: 0.043},
-{date:"2026-03-12",inflation:1.04,salary:10,cpi:55.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:13.5, gini: 0.059},
-{date:"2026-03-13",inflation:1.4,salary:15,cpi:114.3,money:15400,stockp:14.4, gini: 0.053},
-{date:"2026-03-16",inflation:1.2,salary:30,cpi:100.0,money:16800,stockp:15.7, gini: 0.058},
-{date:"2026-03-17",inflation:1.13,salary:27,cpi:100.0,money:15763.16,gdp:6273,gdpGrowth:9.3,stockp:15.2, gini: 0.075},
-{date:"2026-03-18",inflation:1.18,salary:28,cpi:1.6,money:16521.12,gdp:6566,gdpGrowth:14.4,stockp:16.6, gini: 0.078},
-{date:"2026-03-19",inflation:1.36,salary:33,cpi:1.6,money:19057.08,gdp:7594,gdpGrowth:32.3,stockp:15.4, gini: 0.087},
-{date:"2026-03-20",inflation:1.48,salary:35,cpi:40.6,money:20678,gdp:8217,gdpGrowth:43.2,stockp:16.9, gini: 0.089},
-{date:"2026-03-23",inflation:1.43,salary:34,cpi:84.8,money:19972.40,gdp:7942,gdpGrowth:38.4,stockp:17.7, gini: 0.098},
-{date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0, gini: 0.102}
+{date:"2026-03-06",inflation:1.2,salary:10,cpi:40.0,money:14000,stockp:10.2, gini: 0.058},
+{date:"2026-03-09",inflation:1.04,salary:10,cpi:20.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:11.1, gini: 0.077},
+{date:"2026-03-10",inflation:1.10,salary:10,cpi:20.0,money:15400,gdp:6118,gdpGrowth:6.6,stockp:11.4, gini: 0.089},
+{date:"2026-03-11",inflation:1.06,salary:10,cpi:50.0,money:14840,gdp:5894,gdpGrowth:2.7,stockp:12.3, gini: 0.098},
+{date:"2026-03-12",inflation:1.04,salary:10,cpi:55.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:13.5, gini: 0.122},
+{date:"2026-03-13",inflation:1.4,salary:15,cpi:114.3,money:15400,stockp:14.4, gini: 0.141},
+{date:"2026-03-16",inflation:1.2,salary:30,cpi:100.0,money:16800,stockp:15.7, gini: 0.132},
+{date:"2026-03-17",inflation:1.13,salary:27,cpi:100.0,money:15763.16,gdp:6273,gdpGrowth:9.3,stockp:15.2, gini: 0.158},
+{date:"2026-03-18",inflation:1.18,salary:28,cpi:1.6,money:16521.12,gdp:6566,gdpGrowth:14.4,stockp:16.6, gini: 0.172},
+{date:"2026-03-19",inflation:1.36,salary:33,cpi:1.6,money:19057.08,gdp:7594,gdpGrowth:32.3,stockp:15.4, gini: 0.163},
+{date:"2026-03-20",inflation:1.48,salary:35,cpi:40.6,money:20678,gdp:8217,gdpGrowth:43.2,stockp:16.9, gini: 0.158},
+{date:"2026-03-23",inflation:1.43,salary:34,cpi:84.8,money:19972.40,gdp:7942,gdpGrowth:38.4,stockp:17.7, gini: 0.167},
+{date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0, gini: 0.183}
 ]
 
 /* ======================
-經濟計算
+經濟計算 (自動抓取最新歷史資料)
 ====================== */
-let inflation=currentAsset/baseAsset
-let newSalary=Math.round(baseSalary*inflation*adjustRatio)
-let money=currentAsset*students
-let cpi=((currentPrice-basePrice)/basePrice)*100
+// 1. 抓取 historyData 的最後一筆資料
+let latestData = historyData[historyData.length - 1];
 
-let gdp = newSalary*students + money*0.35
-let baseGDP = baseSalary*students + baseAsset*students*0.35  // 修正基準GDP包含貨幣
-let gdpGrowth = (gdp - baseGDP)/baseGDP
+// 2. 直接從最新資料中讀取數值
+let inflation = latestData.inflation;
+let newSalary = latestData.salary;
+let money = latestData.money;
+let cpi = latestData.cpi;
+let gdp = latestData.gdp;
+let gdpGrowth = latestData.gdpGrowth;
+let stockp = latestData.stockp;
+let currentGini = latestData.gini !== undefined ? latestData.gini : "-";
 
-document.getElementById("inflation").innerText=inflation.toFixed(2)
-document.getElementById("salary").innerText=newSalary+" 點"
-document.getElementById("money").innerText=money.toFixed(2)+" 點"
-document.getElementById("cpi").innerText=cpi.toFixed(1)+"%"
-document.getElementById("gdp").innerText=Math.round(gdp)
-document.getElementById("gdpGrowth").innerText=(gdpGrowth*100).toFixed(1)+"%"
-document.getElementById("savingRate").innerText=savingRate+"% / 每兩週"
-document.getElementById("fixedRate").innerText=fixedRate+"% / 每月"
+// 3. 更新到網頁最上方的儀表板卡片
+document.getElementById("inflation").innerText = inflation;
+document.getElementById("salary").innerText = newSalary + " 點";
+document.getElementById("money").innerText = Number(money).toFixed(2) + " 點";
+document.getElementById("cpi").innerText = cpi + "%";
+document.getElementById("gdp").innerText = gdp;
+document.getElementById("gdpGrowth").innerText = gdpGrowth + "%";
+document.getElementById("savingRate").innerText = savingRate + "% / 每兩週";
+document.getElementById("fixedRate").innerText = fixedRate + "% / 每月";
 document.getElementById("stockp").innerText = stockp + " 點";
 document.getElementById("gini").innerText = currentGini;
 
@@ -557,7 +560,7 @@ new Chart(document.getElementById("gdpGrowthChart"),{
 new Chart(document.getElementById("giniChart"),{
     type:"line",
     data:{labels:labels,datasets:[{
-        label:"吉尼係數",
+        label:"吉尼係數[資產平均(<0.2),合理差距(<0.4),差距偏大(<0.6),差距嚴重(<0.8),資產集中(>=0.8)]",
         data:giniHistory,
         fill:false,
         borderColor: "#9b59b6", // 設定一個特別的紫色
