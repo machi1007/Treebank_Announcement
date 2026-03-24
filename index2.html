@@ -68,7 +68,7 @@ ul{margin-left:20px;}
 </head>
 <body>
 
-<header>🏦 大樹銀行經濟筆記<br></br></header>
+<header>🏦 大樹銀行經濟筆記<br></header>
 <nav>
     <button class="tabButton active" data-tab="introTab">經濟小教室</button>
     <button class="tabButton" data-tab="inflationTab">通膨指數</button>
@@ -76,12 +76,12 @@ ul{margin-left:20px;}
     <button class="tabButton" data-tab="cpiTab">CPI漲幅</button>
     <button class="tabButton" data-tab="moneyTab">貨幣供給量</button>
     <button class="tabButton" data-tab="gdpTab">GDP&成長率</button>
+    <button class="tabButton" data-tab="advancedTab" style="background:#e67e22;">🌟 總體指標</button>
     <button class="tabButton" data-tab="taxTab">課稅模擬</button>
     <button class="tabButton" style="background:#8e44ad;" data-tab="stockIntroTab">📈 股市揭密</button> 
-    <a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到經濟數據公告</a>
+    <a href="index.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:10px;">🏠 回到數據公告</a>
 </nav>
 
-<!-- 經濟小教室筆記 -->
 <section id="introTab" class="active">
 <h1>【註：指標公式為符合班級經濟，將真實指標進行特別調整】</h1>
 <h2>💰 班級經濟小教室（超白話版）</h2>
@@ -123,14 +123,8 @@ ul{margin-left:20px;}
 <h3>🏦 十一、升息 / 降息</h3>
 <p>升息 = 鼓勵存錢，消費少，經濟冷<br>
 降息 = 鼓勵花錢，消費多，經濟熱</p>
-
-<h3>🧪 十二、老師可以玩</h3>
-<p>情境1：東西太貴 → 升息<br>
-情境2：沒人買東西 → 降息<br>
-💡 一句話：升息＝把錢吸回來，降息＝把錢放出去</p>
 </section>
 
-<!-- 通膨 -->
 <section id="inflationTab">
 <h2>📈 通貨膨脹指數 (Inflation)</h2>
 <p>通膨指數表示貨幣價值下降、物價上漲速度。</p>
@@ -141,7 +135,6 @@ ul{margin-left:20px;}
 </p>
 </section>
 
-<!-- 建議薪資 -->
 <section id="salaryTab">
 <h2>💰 建議薪資</h2>
 <p>新薪資 = 基本薪資 × 通膨指數 × 調整係數</p>
@@ -151,7 +144,6 @@ ul{margin-left:20px;}
 </ul>
 </section>
 
-<!-- CPI -->
 <section id="cpiTab">
 <h2>🛒 物價上漲率 (CPI漲幅)</h2>
 <p>CPI漲幅(%) = (目前價格 - 基準價格) ÷ 基準價格 × 100</p>
@@ -161,7 +153,6 @@ ul{margin-left:20px;}
 </ul>
 </section>
 
-<!-- 貨幣供給量 -->
 <section id="moneyTab">
 <h2>💵 貨幣供給量 (Money Supply)</h2>
 <p>班級市場中流通的總點數</p>
@@ -172,19 +163,50 @@ ul{margin-left:20px;}
 </ul>
 </section>
 
-<!-- GDP -->
 <section id="gdpTab">
-<h2>📊 GDP & 成長率</h2>
-<p>GDP = 本次薪資總和 + 貨幣供給量 × 0.35</p>
-<p>成長率 = (本次GDP - 基準GDP) ÷ 基準GDP × 100%</p>
-<ul>
-<li>GDP 高 → 經濟活絡</li>
-<li>GDP 低 → 經濟冷清</li>
-<li>成長率正 → 經濟成長，負 → 經濟縮水</li>
-</ul>
+<h2>📊 GDP & 成長率 (名目 vs 實質)</h2>
+<p>GDP 代表我們班級大樹銀行整體的「生產總值」。但在有通膨的情況下，我們必須把 GDP 分成兩種來看：</p>
+
+<div class="note">
+    <h4 style="margin-top:0; color:#2980b9;">🔵 名目 GDP (帳面數字)</h4>
+    <p><b>公式：</b> 本次薪資總和 + 貨幣供給量 × 0.35</p>
+    <p>這是不考慮物價上漲的「表面產值」。如果央行瘋狂發點數，名目 GDP 就會像火箭一樣狂飆，但這並不代表我們真的變富有了。</p>
+</div>
+
+<div class="note">
+    <h4 style="margin-top:0; color:#16a085;">🟢 實質 GDP (真實產值)</h4>
+    <p><b>公式：</b> 名目 GDP ÷ 通膨指數</p>
+    <p>這是把「通膨水分」擠掉後的真實產值。只有實質 GDP 和「實質成長率」上升，才代表班級的經濟真的在進步、購買力真的變強了！</p>
+</div>
 </section>
 
-<!-- 課稅模擬 -->
+<section id="advancedTab">
+<h2>🌟 總體經濟指標</h2>
+<p>為了更精準地掌握大樹銀行的健康狀況，我們引入了三大總體經濟指標：</p>
+
+<div class="note">
+    <h4 style="margin-top:0; color:#e74c3c;">🚥 景氣對策信號燈</h4>
+    <p>利用「實質 GDP 成長率」來測量景氣溫度的紅綠燈：</p>
+    <ul>
+        <li><b>🔴 紅燈 (過熱)：</b> 成長過快，可能伴隨嚴重通膨與泡沫化。</li>
+        <li><b>🟢 綠燈 (穩定)：</b> 經濟穩定成長，是最健康的狀態。</li>
+        <li><b>🔵 藍燈 (低迷)：</b> 經濟衰退，大家不敢花錢，需要刺激消費。</li>
+    </ul>
+</div>
+
+<div class="note">
+    <h4 style="margin-top:0; color:#e67e22;">🌈 大樹幸福指數</h4>
+    <p><b>公式：</b> 100分 - 通膨扣分 - 貧富差距(吉尼係數)扣分</p>
+    <p>即使 GDP 很高，但如果物價太貴(通膨)或財富只集中在少數人手裡(貧富差距大)，多數人依然會覺得生活困難。分數越高，代表班級整體生活品質越幸福！</p>
+</div>
+
+<div class="note">
+    <h4 style="margin-top:0; color:#8e44ad;">📊 巴菲特指標 (股市泡沫溫度計)</h4>
+    <p><b>公式：</b> 股市總市值 ÷ 總 GDP</p>
+    <p>用來判斷現在的股票是不是「太貴了」。如果指數破百(紅燈)，代表股票市值膨脹超過了實際經濟產值，市場充滿泡沫，隨時可能面臨股災崩盤。</p>
+</div>
+</section>
+
 <section id="taxTab">
 <h2>💸 課稅建議與再分配</h2>
 <p>輸入班級數據，系統會建議課稅金額，計算班級基金與補助規則，<b>不顯示每位學生扣款明細</b>。</p>
@@ -255,7 +277,7 @@ ul{margin-left:20px;}
     <p>要預測大樹銀行的股價，我們不能只靠運氣，必須學會觀察市場上的三股強大力量：</p>
 
     <div class="note">
-        <h4 style="margin-top:5px; color:#27ae60;">🏢 1. 基本面（公司的健康檢查表）</h4>
+        <h4 style="margin-top:5px; color:#27ae60;">🏢 1. 基本面（銀行的健康檢查表）</h4>
         <ul>
             <li><b>看什麼：</b> GDP 成長率、通膨指數、CPI 物價。</li>
             <li><b>意思：</b> 也就是大樹銀行經濟圈「現在賺不賺錢」。如果大家薪水變多、經濟繁榮，基本面就好，股價就有強大的支撐力，不容易跌。</li>
@@ -339,7 +361,6 @@ ul{margin-left:20px;}
     </p>
 </section>
 
-
 <script>
 // 切換頁籤
 const tabs=document.querySelectorAll('.tabButton')
@@ -353,7 +374,6 @@ tabs.forEach(tab=>{
     })
 })
 
-// 課稅模擬（不顯示每位學生扣款）
 function calculateAndDistributeTax(){
     const moneySupply = parseFloat(document.getElementById('moneySupply').value);
     const cpi = parseFloat(document.getElementById('cpi').value);
@@ -362,31 +382,26 @@ function calculateAndDistributeTax(){
     const minCash = parseFloat(document.getElementById('minCash').value);
     const assistThreshold = parseFloat(document.getElementById('assistThreshold').value);
 
-    // 1. 修正算式：如果 CPI 是負的（通縮），稅金算出來會小於 0，強制將稅金設為 0
     let rawTax = moneySupply * 0.10 * (cpi / 100) * gini;
     const totalTax = rawTax > 0 ? Math.round(rawTax) : 0;
 
-    // 2. 動態判斷「貨幣狀態」 (用平均每人點數來抓感覺)
     const avgMoney = moneySupply / studentCount;
     let moneyStatus = "";
     if (avgMoney > 500) moneyStatus = "市場上資金非常充沛";
     else if (avgMoney >= 200) moneyStatus = "市場資金量適中";
     else moneyStatus = "市場上資金偏少（處於緊縮）";
 
-    // 3. 動態判斷「物價狀態」
     let cpiStatus = "";
     if (cpi >= 10) cpiStatus = "物價漲幅偏高";
     else if (cpi > 0) cpiStatus = "物價微幅上漲";
     else if (cpi === 0) cpiStatus = "物價完全持平";
     else cpiStatus = "物價出現下跌（通貨緊縮）";
 
-    // 4. 動態判斷「貧富差距」
     let giniStatus = "";
     if (gini >= 0.5) giniStatus = "貧富差距較大";
     else if (gini >= 0.3) giniStatus = "貧富差距在合理範圍";
     else giniStatus = "財富分配非常平均";
 
-    // 5. 組合出聰明的「課稅緣由」
     let reason = `🔍 <b>經濟診斷結果：</b>目前${moneyStatus}（總量 ${moneySupply} 點），且${cpiStatus}（CPI漲幅 ${cpi}%），加上${giniStatus}（吉尼係數 ${gini}）。`;
 
     if (totalTax > 0) {
@@ -395,15 +410,13 @@ function calculateAndDistributeTax(){
         reason += `<br><br>💡 <b>行動建議：</b>由於目前沒有通膨壓力（或物價正在下跌），系統建議<b>「暫不課稅」</b>，讓學生把錢留在身上以刺激消費！`;
     }
 
-    // 6. 計算班級基金 = 課稅總額扣除補助
     const perStudentCash = Math.floor(moneySupply / studentCount);
     let fund = 0;
     
-    // 如果有課稅，才需要跑扣款與補助邏輯
     if (totalTax > 0) {
         for(let i=0; i<studentCount; i++){
             let deduction = Math.min(perStudentCash - minCash, Math.round(totalTax/studentCount));
-            deduction = Math.max(deduction, 0); // 確保不扣到負數
+            deduction = Math.max(deduction, 0); 
             fund += deduction;
 
             let remaining = perStudentCash - deduction;
@@ -414,7 +427,6 @@ function calculateAndDistributeTax(){
         }
     }
 
-    // 7. 將結果輸出到畫面上 (注意 taxReason 改用 innerHTML 讓排版更漂亮)
     document.getElementById('taxAmount').innerText = totalTax + " 點";
     document.getElementById('averageTax').innerText = (totalTax > 0 ? Math.round(totalTax / studentCount) : 0) + " 點";
     document.getElementById('taxReason').innerHTML = reason; 
@@ -422,6 +434,5 @@ function calculateAndDistributeTax(){
     document.getElementById('taxResult').style.display = 'block';
 }
 </script>
-
 </body>
 </html>
