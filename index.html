@@ -135,6 +135,16 @@ nav.system-nav a:hover {
     width: 100%; transition: 0.2s;
 }
 .close-btn:hover { background: #c0392b; }
+/* 景氣對策燈號樣式 */
+.light-bulb {
+    width: 45px; height: 45px; border-radius: 50%;
+    background: #bdc3c7; margin: 0 10px;
+    display: inline-block; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+    transition: 0.3s;
+}
+.light-active {
+    box-shadow: 0 0 20px currentColor, inset 0 2px 5px rgba(255,255,255,0.5);
+}
 
 </style>
 </head>
@@ -169,12 +179,16 @@ nav.system-nav a:hover {
     <div class="cardTitle">貨幣供給量</div>
     <div class="cardValue" id="money"></div>
   </div>
-  <div class="card">
-    <div class="cardTitle">GDP</div>
+<div class="card">
+    <div class="cardTitle">名目 GDP<br><span style="font-size:14px; color:#7f8c8d;">(未扣除通膨)</span></div>
     <div class="cardValue" id="gdp"></div>
   </div>
+  <div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
+    <div class="cardTitle">實質 GDP<br><span style="font-size:14px; color:#16a085;">(真實產值)</span></div>
+    <div class="cardValue" id="realGdp" style="color:#16a085;"></div>
+  </div>
   <div class="card">
-    <div class="cardTitle">GDP成長率</div>
+    <div class="cardTitle">實質經濟成長率<br><span style="font-size:14px; color:#7f8c8d;">(扣除通膨後)</span></div>
     <div class="cardValue" id="gdpGrowth"></div>
   </div>
   <div class="card">
@@ -221,15 +235,25 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v7.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v8.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p><b>✔v7.0 (最新)</b>：
+            <p><b>✔v8.0 (最新)</b>：
+                <ul>
+                    <li><b>AI邊緣運算：</b>導入獨立運算的 LSTM 神經網路，每台設備具備專屬數位大腦預測明日股價。</li>
+                    <li><b>社會情緒指標：</b>新增「大樹幸福指數儀表板」，正向評估通膨與貧富分配對班級生活品質的影響。</li>
+                    <li><b>總體經濟指標：</b>新增「景氣對策信號燈」、「巴菲特指標」，評估整體經濟狀況。</li>
+                    <li><b>更新經濟筆記：</b>總體經濟指標等各內容。</li>
+                    <li><b>區分實質名目：</b>區分GDP與成長率為名目及實質狀況。</li>
+ 
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>✔v7.0</b>：
                 <ul>
                     <li><b>實質購買力：</b>新增「實質薪資」儀表板與雙軌折線圖，揭示通膨影響下的真實購買力。</li>
                     <li><b>自動分析系統：</b>新增政策建議系統，自動根據通膨、薪資與貧富差距給予施政方向。</li>
                     <li><b>社會狀態燈號：</b>將吉尼係數具象化為彩色狀態警示，即時監測班級財富分配健康度。</li>
-                    <li><b>AI模擬預測：</b>導入 LSTM 神經網路進行股價邊緣運算預測。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
@@ -322,18 +346,70 @@ nav.system-nav a:hover {
 <canvas id="stockpChart"></canvas>
 </div>
 
-<div class="section" id="fgSection">
-    <h2>🧠 市場心理：恐懼與貪婪指數 (Fear & Greed Index)</h2>
-    <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
-            <div style="font-size: 60px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);" id="fgBigNumber">--</div>
-            <div style="font-size: 28px; font-weight: bold; background: #eee; padding: 10px 20px; border-radius: 30px;" id="fgBigText">--</div>
-        </div>
-        <p style="color: #7f8c8d; font-size: 16px;">( 綜合考量 RSI 動能與近期股價強弱，0 為極度恐懼，100 為極度貪婪 )</p>
+<div class="section">
+    <h2>📊 市場與社會情緒雙引擎儀表板</h2>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         
-        <div style="max-width: 500px; margin: auto; position: relative;">
-            <canvas id="fgGaugeChart"></canvas>
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">🧠 恐懼與貪婪指數</h3>
+            <p style="color: #7f8c8d; font-size: 14px;">( 考量 RSI 與近期股價強弱 )</p>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div style="font-size: 50px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);" id="fgBigNumber">--</div>
+                <div style="font-size: 22px; font-weight: bold; background: #eee; padding: 8px 16px; border-radius: 30px;" id="fgBigText">--</div>
+            </div>
+            <div style="max-width: 350px; margin: auto; position: relative;">
+                <canvas id="fgGaugeChart"></canvas>
+            </div>
         </div>
+
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">🌈 大樹幸福指數</h3>
+            <p style="color: #7f8c8d; font-size: 14px;">( 滿分 100。扣除通膨壓力與貧富差距 )</p>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div style="font-size: 50px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);" id="happinessBigNumber">--</div>
+                <div style="font-size: 22px; font-weight: bold; background: #eee; padding: 8px 16px; border-radius: 30px;" id="happinessBigText">--</div>
+            </div>
+            <div style="max-width: 350px; margin: auto; position: relative;">
+                <canvas id="happinessGaugeChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="section">
+    <h2>🏛️ 大樹銀行總體經濟指標</h2>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">🚥 景氣對策信號燈</h3>
+            <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 25px;">( 依據 GDP 成長率判斷大樹銀行景氣熱度 )</p>
+            
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+                <div class="light-bulb" id="light-red" title="紅燈：景氣過熱"></div>
+                <div class="light-bulb" id="light-yellow-red" title="黃紅燈：景氣活絡"></div>
+                <div class="light-bulb" id="light-green" title="綠燈：景氣穩定"></div>
+                <div class="light-bulb" id="light-yellow-blue" title="黃藍燈：景氣欠佳"></div>
+                <div class="light-bulb" id="light-blue" title="藍燈：景氣低迷"></div>
+            </div>
+            
+            <div style="font-size: 24px; font-weight: bold; color: #2c3e50;" id="signalText">計算中...</div>
+            <div style="font-size: 16px; color: #7f8c8d; margin-top: 5px;" id="signalDesc"></div>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">📊 股市泡沫：巴菲特指標</h3>
+            <p style="color: #7f8c8d; font-size: 14px;">( 股市總市值 ÷ 大樹銀行總 GDP )</p>
+            
+            <div style="font-size: 45px; font-weight: bold; margin: 15px 0;" id="buffettBigNumber">--%</div>
+            
+            <div style="width: 100%; height: 25px; background: #ecf0f1; border-radius: 15px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px;">
+                <div id="buffettBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #3498db, #2ecc71, #f1c40f, #e74c3c); transition: width 1s ease;"></div>
+            </div>
+            
+            <div style="font-size: 20px; font-weight: bold;" id="buffettText">計算中...</div>
+        </div>
+
     </div>
 </div>
 
@@ -382,10 +458,12 @@ nav.system-nav a:hover {
     <th>建議週薪</th>
     <th>CPI漲幅 (%)</th>
     <th>貨幣供給量</th>
-    <th>GDP</th>
-    <th>GDP成長率(%)</th>
+    <th>名目 GDP</th>
+    <th style="color:#e74c3c;">名目成長率(%)</th>
+    <th style="color:#16a085;">實質 GDP</th>
+    <th>實質成長率(%)</th>
     <th>股票結算價</th>
-    <th>吉尼係數</th> </tr>
+    <th>吉尼係數</th> 
     </tr>
     </table>
 </div>
@@ -419,6 +497,8 @@ nav.system-nav a:hover {
 ====================== */
 let baseAsset = 500
 let students = 28
+
+let totalShares = 320;
 
 let baseSalary = 30
 let adjustRatio = 0.8
@@ -464,13 +544,27 @@ let inflation = latestData.inflation;
 let newSalary = latestData.salary;
 let money = latestData.money;
 let cpi = latestData.cpi;
-let gdp = latestData.gdp;
-let gdpGrowth = latestData.gdpGrowth;
 let stockp = latestData.stockp;
 let currentGini = latestData.gini !== undefined ? latestData.gini : "-";
 
+// === 🌟 第八版核心：雙軌 GDP 計算 ===
+// 基準 GDP (用基本薪資與初始貨幣推算)
+let baseGDP = baseSalary * students + baseAsset * students * 0.35; 
+// 名目 GDP = 帳面上的點數總額 (含有通膨水分)
+let nominalGdp = Math.round(newSalary * students + money * 0.35);  
+// 實質 GDP = 擠掉通膨水分後的真實產值
+let realGdpVal = Math.round(nominalGdp / inflation);               
+
+let nominalGdpGrowth = ((nominalGdp - baseGDP) / baseGDP * 100).toFixed(1);
+let realGdpGrowthVal = ((realGdpVal - baseGDP) / baseGDP * 100).toFixed(1);
+
+// ⚠️ 讓後續的圖表與指標使用實質數據來判斷
+let gdp = nominalGdp; 
+let gdpGrowth = realGdpGrowthVal;
+
 let currentRealSalary = (newSalary / inflation).toFixed(1); 
 
+// --- 吉尼係數燈號 ---
 let giniText = "";
 let giniColor = "";
 if (currentGini === "-") {
@@ -487,23 +581,25 @@ if (currentGini === "-") {
     giniText = "☠️ 資產極端集中"; giniColor = "#8e44ad";
 }
 
+// --- AI 政策建議 ---
 let adviceList = [];
 if (inflation >= 1.3) adviceList.push("<b>【抑制通膨】</b> 市場熱錢氾濫，建議「調升存款利率」吸引資金回流銀行，或暫緩發放加碼獎金。");
 if (currentGini >= 0.4) adviceList.push("<b>【財富重分配】</b> 貧富差距開始擴大，建議開徵「富人稅」或提高基層職務的基本薪資，避免底層破產。");
 if (currentRealSalary < 25 && inflation > 1.1) adviceList.push("<b>【民生警告】</b> 實質購買力正在下降！雖然薪水變多，但物價漲更兇，學生可能會覺得錢不夠用。");
 if (adviceList.length === 0) adviceList.push("<b>【穩定發展】</b> 目前各項經濟指標均在健康範圍，建議維持現有政策，繼續觀察市場動向。");
 
+// --- 寫入最上方的儀表板 ---
 document.getElementById("inflation").innerText = inflation;
 document.getElementById("salary").innerText = newSalary + " 點";
 document.getElementById("realSalary").innerText = currentRealSalary + " 點"; 
 document.getElementById("money").innerText = Number(money).toFixed(2) + " 點";
 document.getElementById("cpi").innerText = cpi + "%";
-document.getElementById("gdp").innerText = gdp;
-document.getElementById("gdpGrowth").innerText = gdpGrowth + "%";
+document.getElementById("gdp").innerText = nominalGdp; // 顯示名目 GDP
+document.getElementById("realGdp").innerText = realGdpVal; // 顯示實質 GDP
+document.getElementById("gdpGrowth").innerHTML = realGdpGrowthVal + "%<br><span style='font-size:14px; color:#e74c3c;'>(名目: " + nominalGdpGrowth + "%)</span>";
 document.getElementById("savingRate").innerText = savingRate + "% / 每兩週";
 document.getElementById("fixedRate").innerText = fixedRate + "% / 每月";
 document.getElementById("stockp").innerText = stockp + " 點";
-
 document.getElementById("gini").innerText = currentGini;
 document.getElementById("giniStatus").innerText = giniText; 
 document.getElementById("giniStatus").style.color = giniColor;
@@ -526,33 +622,33 @@ salaryData.forEach(item=>{
 })
 
 /* ======================
-技術分析
+技術分析 (均線)
 ====================== */
 function movingAverage(data,period){
-let result=[]
-for(let i=0;i<data.length;i++){
-if(i<period-1){
-result.push(null)
-}else{
-let sum=0
-for(let j=0;j<period;j++){
-sum+=data[i-j]
-}
-result.push((sum/period).toFixed(2))
-}
-}
-return result
+    let result=[]
+    for(let i=0;i<data.length;i++){
+        if(i<period-1){
+            result.push(null)
+        }else{
+            let sum=0
+            for(let j=0;j<period;j++){ sum+=data[i-j] }
+            result.push((sum/period).toFixed(2))
+        }
+    }
+    return result
 }
 
 /* ======================
-歷史表
+🌟 歷史表 (雙軌升級版)
 ====================== */
 let historyTable=document.getElementById("historyTable")
 let baseGDPForHistory = baseSalary*students + baseAsset*students*0.35
 
 historyData.forEach(h=>{
-  let hGDP = Math.round(h.salary*students + h.money*0.35)
-  let hGDPGrowth = ((hGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
+  let nGDP = Math.round(h.salary*students + h.money*0.35)
+  let rGDP = Math.round(nGDP / h.inflation)
+  let nGrowth = ((nGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
+  let rGrowth = ((rGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
   let hGini = h.gini !== undefined ? h.gini : "-";
 
 historyTable.innerHTML+=`
@@ -562,15 +658,18 @@ historyTable.innerHTML+=`
     <td>${h.salary}</td>
     <td>${h.cpi}</td>
     <td>${Number(h.money).toFixed(2)}</td>
-    <td>${hGDP}</td>
-    <td>${hGDPGrowth}</td>
+    <td>${nGDP}</td>
+    <td style="color:#e74c3c; font-weight:bold;">${nGrowth}</td>
+    <td style="color:#16a085; font-weight:bold;">${rGDP}</td>
+    <td>${rGrowth}</td>
     <td>${h.stockp}</td>
-    <td>${hGini}</td> </tr>
+    <td>${hGini}</td> 
+  </tr>
   `
 })
 
 /* ======================
-折線圖
+🌟 折線圖 (雙軌 GDP 軌跡)
 ====================== */
 let labels=historyData.map(h=>h.date)
 let inflationHistory=historyData.map(h=>h.inflation)
@@ -578,12 +677,17 @@ let salaryHistory=historyData.map(h=>h.salary)
 let cpiHistory=historyData.map(h=>h.cpi)
 let moneyHistory=historyData.map(h=>h.money)
 let stockpHistory=historyData.map(h=>h.stockp)
-let gdpHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
-let gdpGrowthHistory = gdpHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
+
+let gdpNominalHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
+let gdpRealHistory = historyData.map(h => Math.round((h.salary*students + h.money*0.35) / h.inflation))
+let gdpNominalGrowthHistory = gdpNominalHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
+let gdpRealGrowthHistory = gdpRealHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
+
 let giniHistory = historyData.map(h => h.gini !== undefined ? h.gini : null)
 
 let ma5=movingAverage(stockpHistory,5)
 let ma10=movingAverage(stockpHistory,10)
+let ma20=movingAverage(stockpHistory,20)
 
 const commonZoomOptions = {
     responsive: true,
@@ -596,50 +700,30 @@ const commonZoomOptions = {
 };
 
 new Chart(document.getElementById("inflationChart"),{
-    type:"line",
-    data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]},
-    options: commonZoomOptions 
+    type:"line", data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]}, options: commonZoomOptions 
 })
 
 let realSalaryHistory = historyData.map(h => (h.salary / h.inflation).toFixed(1));
-
 new Chart(document.getElementById("salaryChart"),{
     type:"line",
     data:{
         labels:labels,
         datasets:[
-            {
-                label:"名目薪資 (帳面領到的錢)",
-                data:salaryHistory,
-                borderColor: "#3498db",
-                fill:false
-            },
-            {
-                label:"實質購買力 (真正能買多少東西)",
-                data:realSalaryHistory,
-                borderColor: "#1abc9c",
-                borderWidth: 3,
-                borderDash: [5, 5], 
-                fill:false
-            }
+            {label:"名目薪資 (帳面)",data:salaryHistory,borderColor: "#3498db",fill:false},
+            {label:"實質購買力",data:realSalaryHistory,borderColor: "#1abc9c",borderWidth: 3,borderDash: [5, 5],fill:false}
         ]
-    },
-    options: commonZoomOptions
+    }, options: commonZoomOptions
 })
 
 new Chart(document.getElementById("cpiChart"),{
-    type:"line",
-    data:{labels:labels,datasets:[{label:"CPI漲幅(%)",data:cpiHistory,fill:false}]},
-    options: commonZoomOptions 
+    type:"line", data:{labels:labels,datasets:[{label:"CPI漲幅(%)",data:cpiHistory,fill:false}]}, options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("moneyChart"),{
-    type:"line",
-    data:{labels:labels,datasets:[{label:"貨幣供給量",data:moneyHistory,fill:false}]},
-    options: commonZoomOptions 
+    type:"line", data:{labels:labels,datasets:[{label:"貨幣供給量",data:moneyHistory,fill:false}]}, options: commonZoomOptions 
 })
 
-new Chart(document.getElementById("stockpChart"),{
+let stockChartInstance = new Chart(document.getElementById("stockpChart"),{
     type:"line",
     data:{
         labels:labels,
@@ -648,54 +732,51 @@ new Chart(document.getElementById("stockpChart"),{
             {label:"MA5",data:ma5,fill:false},
             {label:"MA10",data:ma10,fill:false}
         ]
-    },
-    options: commonZoomOptions 
+    }, options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("gdpChart"),{
     type:"line",
-    data:{labels:labels,datasets:[{label:"GDP",data:gdpHistory,fill:false}]},
-    options: commonZoomOptions 
+    data:{
+        labels:labels,
+        datasets:[
+            {label:"名目 GDP (含通膨)", data:gdpNominalHistory, borderColor: "#3498db", fill:false},
+            {label:"實質 GDP (真實產值)", data:gdpRealHistory, borderColor: "#1abc9c", borderWidth: 3, borderDash: [5, 5], fill:false}
+        ]
+    }, options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("gdpGrowthChart"),{
     type:"line",
-    data:{labels:labels,datasets:[{label:"GDP成長率 (%)",data:gdpGrowthHistory,fill:false}]},
-    options: commonZoomOptions 
+    data:{
+        labels:labels,
+        datasets:[
+            {label:"名目成長率 (%)", data:gdpNominalGrowthHistory, borderColor: "#e74c3c", fill:false},
+            {label:"實質成長率 (%)", data:gdpRealGrowthHistory, borderColor: "#f39c12", borderWidth: 3, borderDash: [5, 5], fill:false}
+        ]
+    }, options: commonZoomOptions 
 })
 
 new Chart(document.getElementById("giniChart"),{
     type:"line",
     data:{labels:labels,datasets:[{
-        label:"吉尼係數[資產平均(<0.2),合理差距(<0.4),差距偏大(<0.6),差距嚴重(<0.8),資產集中(>=0.8)]",
-        data:giniHistory,
-        fill:false,
-        borderColor: "#9b59b6", 
-        spanGaps: false 
-    }]},
-    options: commonZoomOptions 
+        label:"吉尼係數", data:giniHistory, fill:false, borderColor: "#9b59b6", spanGaps: false 
+    }]}, options: commonZoomOptions 
 })
 
 /* ======================
 公告
 ====================== */
 let text=""
-if(inflation<1){
-text="📉 經濟緊縮：市場貨幣減少"
-}else if(inflation<1.5){
-text="📊 經濟穩定"
-}else if(inflation<2){
-text="📈 通貨膨脹：薪資已調整"
-}else{
-text="🔥 超級通膨：市場資金過多"
-}
+if(inflation<1){ text="📉 經濟緊縮：市場貨幣減少" }
+else if(inflation<1.5){ text="📊 經濟穩定" }
+else if(inflation<2){ text="📈 通貨膨脹：薪資已調整" }
+else{ text="🔥 超級通膨：市場資金過多" }
 document.getElementById("announcement").innerText=text
 
 /* ======================
-🔥 技術指標
+🔥 技術指標 (RSI & MACD)
 ====================== */
-let ma20 = movingAverage(stockpHistory, 20);
-
 function calcRSI(data, period=5){
   let gains=[], losses=[];
   for(let i=1; i<data.length; i++){
@@ -704,9 +785,7 @@ function calcRSI(data, period=5){
     losses.push(diff < 0 ? -diff : 0);
   }
   let rsi=[];
-  for(let i=0; i<period; i++){
-    rsi.push(null);
-  }
+  for(let i=0; i<period; i++) rsi.push(null);
   for(let i=period; i<data.length; i++){
     let avgGain = gains.slice(i-period, i).reduce((a,b)=>a+b, 0) / period;
     let avgLoss = losses.slice(i-period, i).reduce((a,b)=>a+b, 0) / period;
@@ -725,7 +804,6 @@ function EMA(data, period){
   }
   return ema;
 }
-
 function calcMACD(data){
   let ema12 = EMA(data, 12);
   let ema26 = EMA(data, 26);
@@ -736,26 +814,11 @@ function calcMACD(data){
 }
 let macdData = calcMACD(stockpHistory);
 
-let stockChartInstance = Chart.getChart("stockpChart");
-
-document.getElementById("ma5Toggle").onchange = function() {
-  stockChartInstance.data.datasets[1].hidden = !this.checked;
-  stockChartInstance.update();
-};
-
-document.getElementById("ma10Toggle").onchange = function() {
-  stockChartInstance.data.datasets[2].hidden = !this.checked;
-  stockChartInstance.update();
-};
-
+document.getElementById("ma5Toggle").onchange = function() { stockChartInstance.data.datasets[1].hidden = !this.checked; stockChartInstance.update(); };
+document.getElementById("ma10Toggle").onchange = function() { stockChartInstance.data.datasets[2].hidden = !this.checked; stockChartInstance.update(); };
 document.getElementById("ma20Toggle").onchange = function() {
   if (this.checked) {
-    stockChartInstance.data.datasets.push({
-      label: "MA20",
-      data: ma20,
-      borderColor: "orange",
-      fill: false
-    });
+    stockChartInstance.data.datasets.push({ label: "MA20", data: ma20, borderColor: "orange", fill: false });
   } else {
     stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(d => d.label !== "MA20");
   }
@@ -768,21 +831,12 @@ document.getElementById("rsiToggle").onchange = function() {
       let div = document.createElement("div");
       div.className = "section";
       div.innerHTML = `<h2>📊 RSI 指標</h2><canvas id="rsiChart"></canvas>`;
-      let stockSection = document.getElementById("stockpChart").parentElement;
-      stockSection.insertAdjacentElement("afterend", div);
-
+      document.getElementById("stockpChart").parentElement.insertAdjacentElement("afterend", div);
       new Chart(document.getElementById("rsiChart"), {
-        type: "line",
-        data: { labels: labels, datasets: [{ label: "RSI", data: rsiData }] },
-        options: {
-          ...commonZoomOptions,
-          scales: { y: { min: 0, max: 100 } }
-        }
+        type: "line", data: { labels: labels, datasets: [{ label: "RSI", data: rsiData }] }, options: { ...commonZoomOptions, scales: { y: { min: 0, max: 100 } } }
       });
     }
-  } else {
-    document.getElementById("rsiChart")?.parentElement.remove();
-  }
+  } else { document.getElementById("rsiChart")?.parentElement.remove(); }
 };
 
 document.getElementById("macdToggle").onchange = function() {
@@ -791,55 +845,30 @@ document.getElementById("macdToggle").onchange = function() {
       let div = document.createElement("div");
       div.className = "section";
       div.innerHTML = `<h2>📊 MACD 指標</h2><canvas id="macdChart"></canvas>`;
-      let stockSection = document.getElementById("stockpChart").parentElement;
-      stockSection.insertAdjacentElement("afterend", div);
-
+      document.getElementById("stockpChart").parentElement.insertAdjacentElement("afterend", div);
       new Chart(document.getElementById("macdChart"), {
         type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            { label: "MACD(短期趨勢)", data: macdData.macd, type: "line" },
-            { label: "Signal(長期趨勢)", data: macdData.signal, type: "line" },
-            { label: "柱狀", data: macdData.hist }
-          ]
-        },
+        data: { labels: labels, datasets: [ { label: "MACD", data: macdData.macd, type: "line" }, { label: "Signal", data: macdData.signal, type: "line" }, { label: "柱狀", data: macdData.hist } ] },
         options: commonZoomOptions 
       });
     }
-  } else {
-    document.getElementById("macdChart")?.parentElement.remove();
-  }
+  } else { document.getElementById("macdChart")?.parentElement.remove(); }
 };
 
 let customMaDatasets = []; 
-
 function addCustomMA() {
     let period = parseInt(document.getElementById("customMaInput").value);
-    if(isNaN(period) || period <= 0) {
-        alert("⚠️ 魔法失敗：請輸入大於 0 的天數喔！");
-        return;
-    }
-    if(period > stockpHistory.length) {
-        alert("⚠️ 魔法失敗：輸入的天數不能超過大樹銀行開張的總天數喔！");
-        return;
-    }
+    if(isNaN(period) || period <= 0) return alert("⚠️ 請輸入大於 0 的天數喔！");
+    if(period > stockpHistory.length) return alert("⚠️ 不能超過總天數喔！");
     let colors = ["#8e44ad", "#e67e22", "#16a085", "#c0392b", "#2980b9"];
-    let color = colors[customMaDatasets.length % colors.length];
-    let customMaData = movingAverage(stockpHistory, period);
     let newDataset = {
-        label: "自訂 MA" + period,
-        data: customMaData,
-        borderColor: color,
-        borderDash: [5, 5], 
-        borderWidth: 2,
-        fill: false
+        label: "自訂 MA" + period, data: movingAverage(stockpHistory, period),
+        borderColor: colors[customMaDatasets.length % colors.length], borderDash: [5, 5], borderWidth: 2, fill: false
     };
     stockChartInstance.data.datasets.push(newDataset);
     customMaDatasets.push(newDataset); 
     stockChartInstance.update();
 }
-
 function clearCustomMA() {
     stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(ds => !customMaDatasets.includes(ds));
     customMaDatasets = []; 
@@ -847,21 +876,14 @@ function clearCustomMA() {
 }
 
 /* ======================
-🔥 恐懼與貪婪指數
+🧠 恐懼與貪婪指數
 ====================== */
 let validRSI = rsiData.filter(v => v !== null);
 let currentRSI = validRSI.length > 0 ? parseFloat(validRSI[validRSI.length - 1]) : 50;
-
 let recent10 = stockpHistory.slice(-10);
-let max10 = Math.max(...recent10);
-let min10 = Math.min(...recent10);
+let max10 = Math.max(...recent10), min10 = Math.min(...recent10);
 let latestStockPrice = stockpHistory[stockpHistory.length - 1]; 
-
-let priceMomentum = 50; 
-if (max10 !== min10) {
-    priceMomentum = ((latestStockPrice - min10) / (max10 - min10)) * 100; 
-}
-
+let priceMomentum = max10 !== min10 ? ((latestStockPrice - min10) / (max10 - min10)) * 100 : 50; 
 let fgIndex = Math.round((currentRSI + priceMomentum) / 2);
 
 let fgText, fgColor;
@@ -879,153 +901,129 @@ document.getElementById("fgBigText").style.backgroundColor = fgColor + "20";
 
 const gaugeNeedlePlugin = {
     id: 'gaugeNeedle',
-    afterDatasetDraw(chart, args, options) {
+    afterDatasetDraw(chart) {
         const { ctx, chartArea: { left, width, height } } = chart;
         ctx.save();
-        const dataTotal = 100;
-        const angle = Math.PI + (1 / dataTotal * fgIndex * Math.PI);
+        const angle = Math.PI + (1 / 100 * chart.config.options.plugins.gaugeNeedle.val * Math.PI);
         const cx = left + width / 2;
         const cy = chart.getDatasetMeta(0).data[0].y; 
-
-        ctx.translate(cx, cy);
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.moveTo(0, -5); 
-        ctx.lineTo(height * 0.7, 0); 
-        ctx.lineTo(0, 5);
-        ctx.fillStyle = '#2c3e50';
-        ctx.fill();
-
-        ctx.translate(-cx, -cy);
-        ctx.beginPath();
-        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-        ctx.fillStyle = '#2c3e50';
-        ctx.fill();
+        ctx.translate(cx, cy); ctx.rotate(angle);
+        ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(height * 0.7, 0); ctx.lineTo(0, 5); ctx.fillStyle = '#2c3e50'; ctx.fill();
+        ctx.translate(-cx, -cy); ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fillStyle = '#2c3e50'; ctx.fill();
         ctx.restore();
     }
 };
 
 new Chart(document.getElementById("fgGaugeChart"), {
     type: "doughnut",
-    data: {
-        labels: ["極度恐懼", "恐懼", "中立", "貪婪", "極度貪婪"],
-        datasets: [{
-            data: [25, 20, 10, 20, 25], 
-            backgroundColor: ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        circumference: 180, 
-        rotation: -90,      
-        cutout: "60%",      
-        plugins: {
-            legend: { position: 'bottom' },
-            tooltip: { enabled: false } 
-        }
-    },
+    data: { labels: ["極度恐懼", "恐懼", "中立", "貪婪", "極度貪婪"], datasets: [{ data: [25, 20, 10, 20, 25], backgroundColor: ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"], borderWidth: 0 }] },
+    options: { responsive: true, circumference: 180, rotation: -90, cutout: "60%", plugins: { legend: { position: 'bottom' }, tooltip: { enabled: false }, gaugeNeedle: {val: fgIndex} } },
     plugins: [gaugeNeedlePlugin]
 });
 
+/* ======================
+🌈 大樹幸福指數
+====================== */
+let inflationPenalty = inflation > 1 ? (inflation - 1) * 100 : 0; 
+let giniPenalty = currentGini !== "-" ? currentGini * 100 : 0;
+let happinessIndex = Math.round(100 - (inflationPenalty + giniPenalty));
+if (happinessIndex < 0) happinessIndex = 0; if (happinessIndex > 100) happinessIndex = 100;
+
+let hapText, hapColor;
+if (happinessIndex <= 20) { hapText = "民不聊生 💀"; hapColor = "#c0392b"; }        
+else if (happinessIndex <= 40) { hapText = "生活困難 😰"; hapColor = "#e67e22"; }   
+else if (happinessIndex <= 60) { hapText = "體感正常 😐"; hapColor = "#f1c40f"; }   
+else if (happinessIndex <= 80) { hapText = "安居樂業 😌"; hapColor = "#2ecc71"; }   
+else { hapText = "人間天堂 👼"; hapColor = "#27ae60"; }                        
+
+document.getElementById("happinessBigNumber").innerText = happinessIndex;
+document.getElementById("happinessBigNumber").style.color = hapColor;
+document.getElementById("happinessBigText").innerText = hapText;
+document.getElementById("happinessBigText").style.color = hapColor;
+document.getElementById("happinessBigText").style.backgroundColor = hapColor + "20"; 
+
+new Chart(document.getElementById("happinessGaugeChart"), {
+    type: "doughnut",
+    data: { labels: ["民不聊生", "生活困難", "體感正常", "安居樂業", "人間天堂"], datasets: [{ data: [20, 20, 20, 20, 20], backgroundColor: ["#c0392b", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"], borderWidth: 0 }] },
+    options: { responsive: true, circumference: 180, rotation: -90, cutout: "60%", plugins: { legend: { position: 'bottom' }, tooltip: { enabled: false }, gaugeNeedle: {val: happinessIndex} } },
+    plugins: [gaugeNeedlePlugin]
+});
 
 /* ======================
-🔥 彩蛋與手動清除記憶功能
+🚥 景氣對策信號燈
 ====================== */
-document.getElementById('aiHelpBtn').onclick = function() {
-    document.getElementById('aiModal').style.display = 'flex';
-};
+let currentGdpGrowth = parseFloat(gdpGrowth); // 用實質成長率判斷
+let sigText = "", sigDesc = "", activeLight = "";
 
-window.onclick = function(event) {
-    let modal = document.getElementById('aiModal');
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-}
+if (currentGdpGrowth >= 30) { activeLight = "light-red"; sigText = "🔴 紅燈 (景氣過熱)"; sigDesc = "經濟擴張太快，注意通膨風險！"; document.getElementById(activeLight).style.cssText = "background:#e74c3c; color:#e74c3c;"; } 
+else if (currentGdpGrowth >= 20) { activeLight = "light-yellow-red"; sigText = "🟠 黃紅燈 (景氣活絡)"; sigDesc = "經濟表現強勁，資金充裕。"; document.getElementById(activeLight).style.cssText = "background:#e67e22; color:#e67e22;"; } 
+else if (currentGdpGrowth >= 10) { activeLight = "light-green"; sigText = "🟢 綠燈 (景氣穩定)"; sigDesc = "經濟穩定成長，最佳健康狀態。"; document.getElementById(activeLight).style.cssText = "background:#2ecc71; color:#2ecc71;"; } 
+else if (currentGdpGrowth >= 0) { activeLight = "light-yellow-blue"; sigText = "🟡 黃藍燈 (景氣欠佳)"; sigDesc = "經濟放緩，須密切關注。"; document.getElementById(activeLight).style.cssText = "background:#f1c40f; color:#f1c40f;"; } 
+else { activeLight = "light-blue"; sigText = "🔵 藍燈 (景氣低迷)"; sigDesc = "經濟衰退，建議採取刺激政策。"; document.getElementById(activeLight).style.cssText = "background:#3498db; color:#3498db;"; }
 
+document.getElementById(activeLight).classList.add("light-active");
+document.getElementById("signalText").innerText = sigText;
+document.getElementById("signalDesc").innerText = sigDesc;
+
+/* ======================
+🫧 巴菲特指標 (直接讀取設定的發行總股數)
+====================== */
+let buffettIndex = Math.round((stockp * totalShares / gdp) * 100);
+
+let bufText = "", bufColor = "";
+if (buffettIndex < 80) { bufText = "📉 股市被低估 (適合進場)"; bufColor = "#3498db"; } 
+else if (buffettIndex <= 100) { bufText = "✅ 股價在合理區間"; bufColor = "#2ecc71"; } 
+else if (buffettIndex <= 120) { bufText = "⚠️ 股市稍微偏高"; bufColor = "#e67e22"; } 
+else { bufText = "🔥 嚴重泡沫化警告！"; bufColor = "#e74c3c"; }
+
+document.getElementById("buffettBigNumber").innerText = buffettIndex + "%";
+document.getElementById("buffettBigNumber").style.color = bufColor;
+document.getElementById("buffettText").innerText = bufText;
+document.getElementById("buffettText").style.color = bufColor;
+
+setTimeout(() => { document.getElementById("buffettBar").style.width = (buffettIndex > 100 ? 100 : buffettIndex) + "%"; }, 500);
+
+/* ======================
+🔥 彩蛋與 AI 邊緣運算 
+====================== */
+document.getElementById('aiHelpBtn').onclick = function() { document.getElementById('aiModal').style.display = 'flex'; };
+window.onclick = function(e) { if (e.target === document.getElementById('aiModal')) document.getElementById('aiModal').style.display = "none"; }
 function clearAIPrediction() {
-    let latestDate = labels[labels.length - 1]; 
-    let cacheKey = "real_ai_prediction_" + latestDate;
-    
-    localStorage.removeItem(cacheKey);
-    
-    alert("✨ 已清除這台設備的 AI 記憶！\n按下確定後，網頁將重新整理並讓 AI 重新思考預測結果。");
-    location.reload(); 
+    localStorage.removeItem("real_ai_prediction_" + labels[labels.length - 1]);
+    alert("✨ 已清除這台設備的 AI 記憶！\n按下確定後將重新預測。"); location.reload(); 
 }
 
-/* ======================
-🧠 真實 AI 模型：Brain.js 邊緣運算版 
-====================== */
 setTimeout(() => {
-    console.log("🧠 啟動獨立 AI 數位大腦 (邊緣運算)...");
-
-    let latestDate = labels[labels.length - 1]; 
-    let cacheKey = "real_ai_prediction_" + latestDate;
-    
+    let cacheKey = "real_ai_prediction_" + labels[labels.length - 1];
     let finalPredictedPrice = localStorage.getItem(cacheKey);
-
     let aiChartData = new Array(stockpHistory.length).fill(null);
     aiChartData[stockpHistory.length - 1] = stockpHistory[stockpHistory.length - 1]; 
-    let extendedLabels = [...labels, "AI預測"]; 
 
     if (!finalPredictedPrice) {
-        console.log("⚡ 記憶體無資料，開始在本地端進行 1500 次機器學習...");
         let rawData = historyData.map(h => h.stockp);
-        let maxPrice = 50; 
-        let trainingData = rawData.map(price => price / maxPrice);
-
-        let net = new brain.recurrent.LSTMTimeStep({
-            inputSize: 1,
-            hiddenLayers: [10],
-            outputSize: 1
-        });
-
+        let trainingData = rawData.map(price => price / 50);
+        let net = new brain.recurrent.LSTMTimeStep({ inputSize: 1, hiddenLayers: [10], outputSize: 1 });
         net.train([trainingData], { iterations: 1500, errorThresh: 0.015 });
-
-        let predictedNormalized = net.run(trainingData);
-        let rawPredictedPrice = predictedNormalized * maxPrice;
-
+        
+        let rawPredictedPrice = net.run(trainingData) * 50;
         let latestPrice = stockpHistory[stockpHistory.length - 1];
-        let maxLimit = latestPrice * 1.10;
-        let minLimit = latestPrice * 0.90;
-
-        if (rawPredictedPrice > maxLimit) {
-            finalPredictedPrice = maxLimit;
-            console.log("⚠️ AI 預測過於樂觀，觸發漲停限制");
-        } else if (rawPredictedPrice < minLimit) {
-            finalPredictedPrice = minLimit;
-            console.log("⚠️ AI 預測過於悲觀，觸發跌停限制");
-        } else {
-            finalPredictedPrice = rawPredictedPrice; 
-        }
+        
+        if (rawPredictedPrice > latestPrice * 1.10) finalPredictedPrice = latestPrice * 1.10;
+        else if (rawPredictedPrice < latestPrice * 0.90) finalPredictedPrice = latestPrice * 0.90;
+        else finalPredictedPrice = rawPredictedPrice; 
 
         finalPredictedPrice = finalPredictedPrice.toFixed(1);
-        
         localStorage.setItem(cacheKey, finalPredictedPrice);
-        console.log("💾 本機 AI 預測結果已鎖定：", finalPredictedPrice);
-    } else {
-        console.log("💡 讀取本機今日已定案的 AI 預測：", finalPredictedPrice);
     }
-
     document.getElementById("aiPrediction").innerText = finalPredictedPrice + " 點";
-
+    
     aiChartData.push(finalPredictedPrice); 
-    stockChartInstance.data.labels = extendedLabels;
-
+    stockChartInstance.data.labels = [...labels, "AI預測"];
     stockChartInstance.data.datasets.push({
-        label: "🤖 AI 邊緣運算預測",
-        data: aiChartData,
-        borderColor: "#e67e22",
-        borderWidth: 3,
-        borderDash: [5, 5],
-        pointBackgroundColor: "#e74c3c",
-        pointRadius: 6,
-        fill: false
+        label: "🤖 AI 邊緣運算預測", data: aiChartData, borderColor: "#e67e22", borderWidth: 3, borderDash: [5, 5], pointBackgroundColor: "#e74c3c", pointRadius: 6, fill: false
     });
-
     stockChartInstance.update();
-
-}, 1500);
+}, 800);
 
 </script>
 </body>
