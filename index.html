@@ -134,11 +134,15 @@ nav.system-nav a:hover {
     <div class="cardValue" id="inflation"></div>
   </div>
   <div class="card">
-    <div class="cardTitle">本週建議薪資</div>
+    <div class="cardTitle">本週建議薪資<br><span style="font-size:14px; color:#7f8c8d;">(名目薪資)</span></div>
     <div class="cardValue" id="salary"></div>
   </div>
+  <div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
+    <div class="cardTitle">實質購買力<br><span style="font-size:14px; color:#16a085;">(扣除通膨後實質薪資)</span></div>
+    <div class="cardValue" id="realSalary" style="color:#16a085;"></div>
+  </div>
   <div class="card">
-    <div class="cardTitle">物價上漲率<br>(CPI漲幅)</br></div>
+    <div class="cardTitle">物價上漲率<br>(CPI漲幅)</div>
     <div class="cardValue" id="cpi"></div>
   </div>
   <div class="card">
@@ -160,6 +164,7 @@ nav.system-nav a:hover {
   <div class="card">
     <div class="cardTitle">吉尼係數</div>
     <div class="cardValue" id="gini"></div>
+    <div id="giniStatus" style="font-size:16px; font-weight:bold; margin-top:8px;"></div>
   </div>
 </div>
 
@@ -176,6 +181,11 @@ nav.system-nav a:hover {
 <p>溫馨存款活動：<b>活存1.5%/2週、定存5%/月</b></p>
 <b>【當前經濟狀況】</b>：
 <b id="announcement"></b>
+</div>
+
+<div class="notice" style="background:#eef7ff; border-left: 5px solid #3498db;">
+  📢 <b style="color:#2980b9;">大樹銀行 AI 政策分析與建議</b>
+  <p style="margin-top:10px; font-size:16px; line-height:1.6;" id="aiAdvice"></p>
 </div>
 
 <div class="notice">
@@ -406,9 +416,37 @@ let gdpGrowth = latestData.gdpGrowth;
 let stockp = latestData.stockp;
 let currentGini = latestData.gini !== undefined ? latestData.gini : "-";
 
+// 🔥 新增：計算實質購買力 (名目薪資 / 通膨指數)
+let currentRealSalary = (newSalary / inflation).toFixed(1); 
+
+// 🔥 新增：判斷吉尼係數燈號與狀態
+let giniText = "";
+let giniColor = "";
+if (currentGini === "-") {
+    giniText = "尚無數據"; giniColor = "#7f8c8d";
+} else if (currentGini < 0.2) {
+    giniText = "🟢 資產平均"; giniColor = "#27ae60";
+} else if (currentGini < 0.4) {
+    giniText = "🟡 合理差距"; giniColor = "#f39c12";
+} else if (currentGini < 0.6) {
+    giniText = "🟠 差距偏大"; giniColor = "#d35400";
+} else if (currentGini < 0.8) {
+    giniText = "🔴 差距嚴重"; giniColor = "#c0392b";
+} else {
+    giniText = "☠️ 資產極端集中"; giniColor = "#8e44ad";
+}
+
+// 🔥 新增：生成大樹央行 AI 政策建議
+let adviceList = [];
+if (inflation >= 1.3) adviceList.push("<b>【抑制通膨】</b> 市場熱錢氾濫，建議「調升存款利率」吸引資金回流銀行，或暫緩發放加碼獎金。");
+if (currentGini >= 0.4) adviceList.push("<b>【財富重分配】</b> 貧富差距開始擴大，建議開徵「富人稅」或提高基層職務的基本薪資，避免底層破產。");
+if (currentRealSalary < 25 && inflation > 1.1) adviceList.push("<b>【民生警告】</b> 實質購買力正在下降！雖然薪水變多，但物價漲更兇，學生可能會覺得錢不夠用。");
+if (adviceList.length === 0) adviceList.push("<b>【穩定發展】</b> 目前各項經濟指標均在健康範圍，建議維持現有政策，繼續觀察市場動向。");
+
 // 3. 更新到網頁最上方的儀表板卡片
 document.getElementById("inflation").innerText = inflation;
 document.getElementById("salary").innerText = newSalary + " 點";
+document.getElementById("realSalary").innerText = currentRealSalary + " 點"; // 更新實質薪資
 document.getElementById("money").innerText = Number(money).toFixed(2) + " 點";
 document.getElementById("cpi").innerText = cpi + "%";
 document.getElementById("gdp").innerText = gdp;
@@ -416,7 +454,11 @@ document.getElementById("gdpGrowth").innerText = gdpGrowth + "%";
 document.getElementById("savingRate").innerText = savingRate + "% / 每兩週";
 document.getElementById("fixedRate").innerText = fixedRate + "% / 每月";
 document.getElementById("stockp").innerText = stockp + " 點";
+
 document.getElementById("gini").innerText = currentGini;
+document.getElementById("giniStatus").innerText = giniText; // 更新吉尼燈號
+document.getElementById("giniStatus").style.color = giniColor;
+document.getElementById("aiAdvice").innerHTML = adviceList.join("<br><br>"); // 更新 AI 建議
 
 /* ======================
 薪資表
@@ -513,10 +555,30 @@ new Chart(document.getElementById("inflationChart"),{
     options: commonZoomOptions // 👇 把設定套用進來
 })
 
+let realSalaryHistory = historyData.map(h => (h.salary / h.inflation).toFixed(1));
+
 new Chart(document.getElementById("salaryChart"),{
     type:"line",
-    data:{labels:labels,datasets:[{label:"建議薪資",data:salaryHistory,fill:false}]},
-    options: commonZoomOptions // 👇 套用縮放
+    data:{
+        labels:labels,
+        datasets:[
+            {
+                label:"名目薪資 (帳面領到的錢)",
+                data:salaryHistory,
+                borderColor: "#3498db",
+                fill:false
+            },
+            {
+                label:"實質購買力 (真正能買多少東西)",
+                data:realSalaryHistory,
+                borderColor: "#1abc9c",
+                borderWidth: 3,
+                borderDash: [5, 5], // 用虛線區隔
+                fill:false
+            }
+        ]
+    },
+    options: commonZoomOptions
 })
 
 new Chart(document.getElementById("cpiChart"),{
