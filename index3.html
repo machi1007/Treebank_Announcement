@@ -158,6 +158,11 @@ textarea{
 <input type="number" id="basePrice" value="100">
 </div>
 
+<div class="controlBox">
+  <label>吉尼係數 gini (選填)</label>
+  <input type="number" id="gini" step="0.01" placeholder="例如: 0.32">
+</div>
+
 </div>
 <button class="calcBtn" onclick="calculate()">⚙ 計算經濟</button>
 <button class="addBtn" onclick="addHistory()">📥 加入歷史</button>
@@ -190,6 +195,10 @@ textarea{
 <div class="cardTitle">GDP成長率</div>
 <div class="cardValue" id="gdpGrowth"></div>
 </div>
+<div class="card">
+  <div class="cardTitle">吉尼係數</div>
+  <div class="cardValue" id="giniDisplay">-</div>
+</div>
 </div>
 
 <h2>📜 歷史資料</h2>
@@ -203,7 +212,7 @@ textarea{
 <th>GDP</th>
 <th>GDP成長</th>
 <th>股價</th>
-</tr>
+<th>吉尼係數</th> </tr>
 </table>
 
 <h2>💻 historyData JS</h2>
@@ -224,6 +233,9 @@ function calculate(){
   let baseSalary = Number(document.getElementById("baseSalary").value)
   let adjustRatio = Number(document.getElementById("adjustRatio").value)
   let basePrice = Number(document.getElementById("basePrice").value)
+  let giniInput = document.getElementById("gini").value;
+  let gini = giniInput !== "" ? Number(giniInput).toFixed(2) : null;
+  document.getElementById("giniDisplay").innerText = gini !== null ? gini : "-";
 
   let inflation = asset/baseAsset
   let salary = Math.round(baseSalary*inflation*adjustRatio)
@@ -240,14 +252,15 @@ function calculate(){
   document.getElementById("gdp").innerText = gdp
   document.getElementById("gdpGrowth").innerText = gdpGrowth.toFixed(1)+"%"
 
-  lastData={
-  inflation:inflation.toFixed(2),
-  salary:salary,
-  cpi:cpi.toFixed(1),
-  money:money.toFixed(2),
-  gdp:gdp,
-  gdpGrowth:gdpGrowth.toFixed(1),
-  stock:stock
+lastData={
+    inflation:inflation.toFixed(2),
+    salary:salary,
+    cpi:cpi.toFixed(1),
+    money:money.toFixed(2),
+    gdp:gdp,
+    gdpGrowth:gdpGrowth.toFixed(1),
+    stock:stock,
+    gini:gini
   }
 }
 
@@ -269,7 +282,8 @@ function addHistory(){
     money:lastData.money,
     gdp:lastData.gdp,
     gdpGrowth:lastData.gdpGrowth,
-    stockp:lastData.stock
+    stockp:lastData.stock,
+    gini:lastData.gini
   })
   render()
 }
@@ -278,11 +292,16 @@ function render(){
   let table = document.getElementById("historyTable")
   table.innerHTML=`
   <tr>
-  <th>日期</th><th>通膨</th><th>薪資</th><th>CPI</th><th>貨幣</th><th>GDP</th><th>GDP成長</th><th>股價</th>
+  <th>日期</th><th>通膨</th><th>薪資</th><th>CPI</th><th>貨幣</th><th>GDP</th><th>GDP成長</th><th>股價</th><th>吉尼係數</th>
   </tr>
   `
   let code="let historyData=[\n"
   historyData.forEach(h=>{
+    // 👇 判斷如果沒有填吉尼係數，就顯示 "-"
+    let displayGini = h.gini !== null ? h.gini : "-";
+    // 👇 判斷如果沒有填吉尼係數，就不產生該屬性程式碼
+    let codeGini = h.gini !== null ? `,gini:${h.gini}` : ""; 
+
     table.innerHTML+=`
     <tr>
       <td>${h.date}</td>
@@ -293,9 +312,11 @@ function render(){
       <td>${h.gdp}</td>
       <td>${h.gdpGrowth}</td>
       <td>${h.stockp}</td>
+      <td>${displayGini}</td>
     </tr>
     `
-    code+=`{date:"${h.date}",inflation:${h.inflation},salary:${h.salary},cpi:${h.cpi},money:${h.money},gdp:${h.gdp},gdpGrowth:${h.gdpGrowth},stockp:${h.stockp}},\n`
+    // 👇 注意這裡把 ${codeGini} 加到大括號結束前
+    code+=`{date:"${h.date}",inflation:${h.inflation},salary:${h.salary},cpi:${h.cpi},money:${h.money},gdp:${h.gdp},gdpGrowth:${h.gdpGrowth},stockp:${h.stockp}${codeGini}},\n`
   })
   code+="]"
   document.getElementById("output").value = code
