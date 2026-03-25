@@ -146,6 +146,21 @@ nav.system-nav a:hover {
     box-shadow: 0 0 20px currentColor, inset 0 2px 5px rgba(255,255,255,0.5);
 }
 
+/* 大樹行長 AI 聊天室樣式 */
+.ai-chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: "Microsoft JhengHei", sans-serif; }
+.ai-chat-btn { background: #e67e22; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s; }
+.ai-chat-btn:hover { transform: scale(1.1); }
+.ai-chat-window { display: none; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); position: absolute; bottom: 80px; right: 0; flex-direction: column; overflow: hidden; border: 2px solid #e67e22; }
+.ai-chat-header { background: #e67e22; color: white; padding: 15px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.ai-chat-close { cursor: pointer; font-size: 20px; }
+.ai-chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #fdf2e9; display: flex; flex-direction: column; gap: 10px; }
+.ai-msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 15px; line-height: 1.4; }
+.ai-msg.user { align-self: flex-end; background: #3498db; color: white; border-bottom-right-radius: 2px; }
+.ai-msg.manager { align-self: flex-start; background: white; color: #2c3e50; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
+.ai-chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #eee; }
+.ai-chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
+.ai-chat-input-area button { background: #e67e22; color: white; border: none; padding: 10px 15px; margin-left: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+
 </style>
 </head>
 <body>
@@ -315,9 +330,24 @@ nav.system-nav a:hover {
 </tr>
 </table>
 </div>
-
 <div class="section">
   <h2>✨ AI支援</h2>
+<div class="ai-chat-widget">
+    <div class="ai-chat-btn" id="aiChatBtn" onclick="toggleChat()">🏦</div>
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header">
+            <span>🏦 大樹行長辦公室</span>
+            <span class="ai-chat-close" onclick="toggleChat()">✖</span>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg manager">同學你好！我是大樹銀行的行長。對於現在的通膨、股價或班級經濟有任何問題，都可以問我喔！</div>
+        </div>
+        <div class="ai-chat-input-area">
+            <input type="text" id="aiChatInput" placeholder="請問行長...">
+            <button onclick="sendToManager()">發問</button>
+        </div>
+    </div>
+</div>
   <div class="card" style="background: #fdf2e9; border: 2px solid #e67e22; position: relative; min-width: 260px;">
       <div style="position:absolute; top:-10px; right:-10px; background:#e74c3c; color:white; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:bold;">互動 AI</div>
       <div class="cardTitle" style="margin-bottom: 5px;">
@@ -1111,6 +1141,67 @@ function runCustomAIPrediction() {
 
 // 頁面載入時，自動用「預設參數」跑一次
 setTimeout(runCustomAIPrediction, 800);
+
+// 👇👇👇 請把下面這行換成你剛剛在第一步複製的 GAS 網址 👇👇👇
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxHkRkfUoFb985TW0IEfQ3Y4z1a7NwJs0JO3qWJZlWYC2SQGfQAZ2NV479nDocX0Rux1g/exec"; 
+
+function toggleChat() {
+    const chatWindow = document.getElementById('aiChatWindow');
+    chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+}
+
+async function sendToManager() {
+    const inputField = document.getElementById('aiChatInput');
+    const chatBody = document.getElementById('aiChatBody');
+    const userText = inputField.value.trim();
+    if (!userText) return;
+
+    appendMessage(userText, 'user');
+    inputField.value = '';
+    const loadingId = appendMessage('行長翻閱資料中...', 'manager');
+
+    // 這裡會自動抓取你原本網頁上的經濟數值
+    const systemPrompt = `
+        你現在是「大樹點數銀行」的行長，名字叫「大樹」。
+        你在一個班級的經濟模擬系統中服務小學生/國中生。請用親切、鼓勵的語氣回答，字數精簡(約50-100字)。
+        
+        【當前班級經濟狀態】：
+        - 通膨指數：${typeof inflation !== 'undefined' ? inflation : '未知'}
+        - 結算股價：${typeof stockp !== 'undefined' ? stockp : '未知'} 點
+        - 景氣狀態：${typeof sigText !== 'undefined' ? sigText : '未知'}
+        
+        學生的問題是：${userText}
+    `;
+
+    try {
+        const response = await fetch(GAS_API_URL, {
+            method: "POST",
+            body: JSON.stringify({ prompt: systemPrompt }) 
+        });
+
+        const data = await response.json();
+        document.getElementById(loadingId).innerText = data.reply;
+        chatBody.scrollTop = chatBody.scrollHeight;
+    } catch (error) {
+        document.getElementById(loadingId).innerText = "行長分身乏術，請稍後再試！";
+    }
+}
+
+function appendMessage(text, sender) {
+    const chatBody = document.getElementById('aiChatBody');
+    const msgDiv = document.createElement('div');
+    const msgId = 'msg-' + Date.now();
+    msgDiv.id = msgId;
+    msgDiv.className = `ai-msg ${sender}`;
+    msgDiv.innerText = text;
+    chatBody.appendChild(msgDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return msgId;
+}
+
+document.getElementById('aiChatInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') sendToManager();
+});
 
 </script>
 </body>
