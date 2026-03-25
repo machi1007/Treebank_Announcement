@@ -424,8 +424,8 @@ nav.system-nav a:hover {
   <div class="card" style="background: #fdf2e9; border: 2px solid #e67e22; position: relative; min-width: 260px;">
       <div style="position:absolute; top:-10px; right:-10px; background:#e74c3c; color:white; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:bold;">互動 AI</div>
       <div class="cardTitle" style="margin-bottom: 5px;">
-          🔮 大樹銀行專員實驗室【LSTM神經網路、AI邊緣運算】
-          <span id="aiHelpBtn" style="cursor:pointer; background:#3498db; color:white; border-radius:50%; padding:2px 8px; font-size:14px; margin-left:5px;" title="為什麼我的預測跟別人不一樣？">?</span>
+          <b>🔮 大樹銀行專員實驗室【LSTM神經網路、AI邊緣運算】</b>
+          <span id="aiHelpBtn" style="cursor:pointer; background:#3498db; color:white; border-radius:50%; padding:2px 8px; font-size:14px; margin-left:5px;" title="為什麼我的預測跟別人不一樣？">?</span></br>（溫馨提醒：AI是透過你的選擇和歷史資料運算，結果只供參考哦😮）
       </div>
       <div class="cardValue" id="aiPrediction" style="color:#e67e22; font-size:26px; margin-bottom: 10px;">運算中...</div>
       
@@ -1244,26 +1244,48 @@ function toggleChat() {
 }
 
 async function sendToManager(source) {
-    // 判斷是從哪個輸入框發問的
     const inputId = source === 'floating' ? 'floatingChatInput' : 'embeddedChatInput';
     const inputField = document.getElementById(inputId);
+    if (!inputField) return;
+    
     const userText = inputField.value.trim();
     if (!userText) return;
 
-    // 清空輸入框
-    document.getElementById('floatingChatInput').value = '';
-    document.getElementById('embeddedChatInput').value = '';
+    // 清空兩個輸入框
+    if(document.getElementById('floatingChatInput')) document.getElementById('floatingChatInput').value = '';
+    if(document.getElementById('embeddedChatInput')) document.getElementById('embeddedChatInput').value = '';
 
-    // 將學生的問題同步顯示到兩個視窗
+    // 顯示使用者留言
     appendMessageToBoth(userText, 'user');
+    
+    // 顯示行長讀取中，並取得專屬 ID
     const loadingId = appendMessageToBoth('行長翻閱資料中...', 'manager');
 
-    // 1. 把陣列裡的歷史數據，整理成 AI 看得懂的逐條紀錄
-    const historyText = typeof historyData !== 'undefined' 
-        ? historyData.map((data, index) => `第${index + 1}次結算：股價 ${data.stockp}點 / 通膨 ${data.inflation} / CPI ${data.cpi}%`).join('\n')
-        : '無歷史紀錄';
+ // 1. 【防彈版】歷史數據整理
+    let historyText = '無歷史紀錄';
+    if (typeof historyData !== 'undefined' && Array.isArray(historyData)) {
+        historyText = historyData.map((data, index) => {
+            return `第${index + 1}次結算：股價 ${data.stockp || '未知'}點 / 通膨 ${data.inflation || '未知'} / CPI ${data.cpi || '未知'}%`;
+        }).join('\n');
+    }
 
-    // 2. 抓取所有經濟數值並嚴格限制 AI 的回答方式
+    // 2. 【防彈版】進階陣列數據抓取
+    let currentRsi = '未知';
+    if (typeof rsiData !== 'undefined' && Array.isArray(rsiData) && rsiData.length > 0) {
+        let lastRsi = rsiData[rsiData.length - 1];
+        // 確保它是數字才能用 toFixed
+        currentRsi = (!isNaN(lastRsi) && lastRsi !== null) ? Number(lastRsi).toFixed(2) : lastRsi;
+    }
+
+    let currentMa5 = '未知';
+    if (typeof ma5 !== 'undefined' && Array.isArray(ma5) && ma5.length > 0) {
+        currentMa5 = ma5[ma5.length - 1];
+    }
+
+    const aiPredElement = document.getElementById("aiPrediction");
+    const aiPredText = aiPredElement ? aiPredElement.innerText : '未知';
+
+    // 3. 組合給大樹行長的終極情報網 (就算變數壞掉也絕對顯示 '未知' 而不當機)
     const systemPrompt = `
         你現在是「大樹點數銀行」的行長，名字叫「大樹」。
         你在一個班級的經濟模擬系統中服務小學生/國中生。請用親切、鼓勵的語氣回答，字數精簡(約50-100字)。
@@ -1276,12 +1298,18 @@ async function sendToManager(source) {
         - 通膨指數：${typeof inflation !== 'undefined' ? inflation : '未知'}
         - CPI 物價上漲率：${typeof cpi !== 'undefined' ? cpi : '未知'}%
         - 貨幣供給量：${typeof money !== 'undefined' ? money : '未知'}
-        - 名目/實質 GDP：${typeof gdp !== 'undefined' ? gdp : '未知'} / ${typeof realGdp !== 'undefined' ? realGdp : '未知'}
-        - 經濟成長率：${typeof gdpGrowth !== 'undefined' ? gdpGrowth : '未知'}%
-        - 貧富差距 (吉尼係數)：${typeof gini !== 'undefined' ? gini : '未知'}
+        - 名目/實質 GDP：${typeof nominalGdp !== 'undefined' ? nominalGdp : '未知'} / ${typeof realGdpVal !== 'undefined' ? realGdpVal : '未知'}
+        - 實質經濟成長率：${typeof realGdpGrowthVal !== 'undefined' ? realGdpGrowthVal : '未知'}%
+        - 貧富差距 (吉尼係數)：${typeof currentGini !== 'undefined' ? currentGini : '未知'}
         - 目前銀行利率：活存 ${typeof savingRate !== 'undefined' ? savingRate : '未知'} / 定存 ${typeof fixedRate !== 'undefined' ? fixedRate : '未知'}
-        - 📊 目前 RSI 指數：${typeof rsi !== 'undefined' ? rsi : '未知'} 
-        - 📊 目前 MACD 狀態：${typeof macd !== 'undefined' ? macd : '未知'}
+        
+        【股市與預測進階數據】：
+        - 📊 目前 RSI 指數：${currentRsi} 
+        - 📈 5日移動平均線(MA5)：${currentMa5} 點
+        - 🤖 邊緣運算 AI 預測下一期股價：${aiPredText}
+        
+        【班級基礎經濟參數】：
+        - 基本薪資：${typeof baseSalary !== 'undefined' ? baseSalary : '未知'}
         
         【班級歷史經濟紀錄】：
         ${historyText}
@@ -1305,16 +1333,15 @@ async function sendToManager(source) {
         const data = await response.json();
         updateMessageInBoth(loadingId, data.reply);
     } catch (error) {
+        console.error("API 錯誤：", error); 
         updateMessageInBoth(loadingId, "行長分身乏術，請稍後再試！");
     }
 }
 
-// 同步新增訊息到兩個視窗
+// 雙向更新函數
 function appendMessageToBoth(text, sender) {
-    // 【修改這裡】加上 Math.random()，確保即使在同一毫秒產生，ID 也絕對不重複！
     const msgBaseId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
     
-    // 1. 更新內嵌版
     const embeddedBody = document.getElementById('embeddedChatBody');
     if (embeddedBody) {
         const div1 = document.createElement('div');
@@ -1325,7 +1352,6 @@ function appendMessageToBoth(text, sender) {
         embeddedBody.scrollTop = embeddedBody.scrollHeight;
     }
 
-    // 2. 更新浮動版
     const floatingBody = document.getElementById('floatingChatBody');
     if (floatingBody) {
         const div2 = document.createElement('div');
@@ -1335,19 +1361,23 @@ function appendMessageToBoth(text, sender) {
         floatingBody.appendChild(div2);
         floatingBody.scrollTop = floatingBody.scrollHeight;
     }
-    
     return msgBaseId;
 }
-// 同步替換讀取中的訊息
+
 function updateMessageInBoth(baseId, text) {
     const el1 = document.getElementById(baseId + '-emb');
-    if (el1) { el1.innerText = text; document.getElementById('embeddedChatBody').scrollTop = document.getElementById('embeddedChatBody').scrollHeight; }
+    if (el1) { 
+        el1.innerText = text; 
+        document.getElementById('embeddedChatBody').scrollTop = document.getElementById('embeddedChatBody').scrollHeight; 
+    }
     
     const el2 = document.getElementById(baseId + '-flt');
-    if (el2) { el2.innerText = text; document.getElementById('floatingChatBody').scrollTop = document.getElementById('floatingChatBody').scrollHeight; }
+    if (el2) { 
+        el2.innerText = text; 
+        document.getElementById('floatingChatBody').scrollTop = document.getElementById('floatingChatBody').scrollHeight; 
+    }
 }
 
-// 讓兩個輸入框都能按 Enter 送出
 function handleEnter(e, source) {
     if (e.key === 'Enter') sendToManager(source);
 }
