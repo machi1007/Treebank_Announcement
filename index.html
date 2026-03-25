@@ -161,6 +161,27 @@ nav.system-nav a:hover {
 .ai-chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
 .ai-chat-input-area button { background: #e67e22; color: white; border: none; padding: 10px 15px; margin-left: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
 
+
+/* 主畫面內嵌版 AI 聊天室專屬樣式 */
+.embedded-chat-card {
+    display: flex;
+    flex-direction: column;
+    height: 400px; /* 控制卡片高度 */
+    padding: 0;    /* 移除預設 padding 讓版面貼齊 */
+    overflow: hidden;
+}
+.embedded-chat-card h3 {
+    margin: 0;
+    padding: 15px;
+    background: #e67e22;
+    color: white;
+    font-size: 18px;
+}
+.embedded-chat-card .ai-chat-body {
+    border-radius: 0; /* 覆蓋原本的圓角 */
+}
+
+
 </style>
 </head>
 <body>
@@ -241,10 +262,17 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v8.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v9.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p><b>✔v8.0 (最新)</b>：
+            <p><b>v9.0</b>：
+                <ul>
+                    <li><b>生成式AI支援：</b>【重量更新】可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
+ 
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v8.0</b>：
                 <ul>
                     <li><b>AI邊緣運算：</b>導入獨立運算的 LSTM 神經網路，每台設備具備專屬數位大腦預測明日股價。</li>
                     <li><b>社會情緒指標：</b>新增「經濟幸福指數儀表板」，正向評估通膨與貧富分配對班級生活品質的影響。</li>
@@ -336,15 +364,15 @@ nav.system-nav a:hover {
     <div class="ai-chat-btn" id="aiChatBtn" onclick="toggleChat()">🏦</div>
     <div class="ai-chat-window" id="aiChatWindow">
         <div class="ai-chat-header">
-            <span>🏦 大樹行長辦公室</span>
+            <span>🏦 大樹行長辦公室(AI大樹)</span>
             <span class="ai-chat-close" onclick="toggleChat()">✖</span>
         </div>
-        <div class="ai-chat-body" id="aiChatBody">
+        <div class="ai-chat-body" id="floatingChatBody">
             <div class="ai-msg manager">同學你好！我是大樹銀行的行長。對於現在的通膨、股價或班級經濟有任何問題，都可以問我喔！</div>
         </div>
         <div class="ai-chat-input-area">
-            <input type="text" id="aiChatInput" placeholder="請問行長...">
-            <button onclick="sendToManager()">發問</button>
+            <input type="text" id="floatingChatInput" placeholder="請問行長..." onkeypress="handleEnter(event, 'floating')">
+            <button onclick="sendToManager('floating')">發問</button>
         </div>
     </div>
 </div>
@@ -377,6 +405,16 @@ nav.system-nav a:hover {
               🚀 套用參數並重新預測
           </button>
       </div>
+<div class="card embedded-chat-card">
+    <h3>🏦 大樹行長辦公室 (AI大樹)</h3>
+    <div class="ai-chat-body" id="embeddedChatBody">
+        <div class="ai-msg manager">同學你好！我是大樹銀行的行長。對於現在的通膨、股價或班級經濟有任何問題，都可以問我喔！</div>
+    </div>
+    <div class="ai-chat-input-area">
+        <input type="text" id="embeddedChatInput" placeholder="請問行長..." onkeypress="handleEnter(event, 'embedded')">
+        <button onclick="sendToManager('embedded')">發問</button>
+    </div>
+</div>
     </div>
 </div>
 
@@ -1150,17 +1188,22 @@ function toggleChat() {
     chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
 }
 
-async function sendToManager() {
-    const inputField = document.getElementById('aiChatInput');
-    const chatBody = document.getElementById('aiChatBody');
+async function sendToManager(source) {
+    // 判斷是從哪個輸入框發問的
+    const inputId = source === 'floating' ? 'floatingChatInput' : 'embeddedChatInput';
+    const inputField = document.getElementById(inputId);
     const userText = inputField.value.trim();
     if (!userText) return;
 
-    appendMessage(userText, 'user');
-    inputField.value = '';
-    const loadingId = appendMessage('行長翻閱資料中...', 'manager');
+    // 清空輸入框
+    document.getElementById('floatingChatInput').value = '';
+    document.getElementById('embeddedChatInput').value = '';
 
-    // 這裡會自動抓取你原本網頁上的經濟數值
+    // 將學生的問題同步顯示到兩個視窗
+    appendMessageToBoth(userText, 'user');
+    const loadingId = appendMessageToBoth('行長翻閱資料中...', 'manager');
+
+    // 抓取經濟數值
     const systemPrompt = `
         你現在是「大樹點數銀行」的行長，名字叫「大樹」。
         你在一個班級的經濟模擬系統中服務小學生/國中生。請用親切、鼓勵的語氣回答，字數精簡(約50-100字)。
@@ -1180,28 +1223,54 @@ async function sendToManager() {
         });
 
         const data = await response.json();
-        document.getElementById(loadingId).innerText = data.reply;
-        chatBody.scrollTop = chatBody.scrollHeight;
+        updateMessageInBoth(loadingId, data.reply);
     } catch (error) {
-        document.getElementById(loadingId).innerText = "行長分身乏術，請稍後再試！";
+        updateMessageInBoth(loadingId, "行長分身乏術，請稍後再試！");
     }
 }
 
-function appendMessage(text, sender) {
-    const chatBody = document.getElementById('aiChatBody');
-    const msgDiv = document.createElement('div');
-    const msgId = 'msg-' + Date.now();
-    msgDiv.id = msgId;
-    msgDiv.className = `ai-msg ${sender}`;
-    msgDiv.innerText = text;
-    chatBody.appendChild(msgDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
-    return msgId;
+// 同步新增訊息到兩個視窗
+function appendMessageToBoth(text, sender) {
+    // 【修改這裡】加上 Math.random()，確保即使在同一毫秒產生，ID 也絕對不重複！
+    const msgBaseId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    
+    // 1. 更新內嵌版
+    const embeddedBody = document.getElementById('embeddedChatBody');
+    if (embeddedBody) {
+        const div1 = document.createElement('div');
+        div1.id = msgBaseId + '-emb';
+        div1.className = `ai-msg ${sender}`;
+        div1.innerText = text;
+        embeddedBody.appendChild(div1);
+        embeddedBody.scrollTop = embeddedBody.scrollHeight;
+    }
+
+    // 2. 更新浮動版
+    const floatingBody = document.getElementById('floatingChatBody');
+    if (floatingBody) {
+        const div2 = document.createElement('div');
+        div2.id = msgBaseId + '-flt';
+        div2.className = `ai-msg ${sender}`;
+        div2.innerText = text;
+        floatingBody.appendChild(div2);
+        floatingBody.scrollTop = floatingBody.scrollHeight;
+    }
+    
+    return msgBaseId;
+}
+// 同步替換讀取中的訊息
+function updateMessageInBoth(baseId, text) {
+    const el1 = document.getElementById(baseId + '-emb');
+    if (el1) { el1.innerText = text; document.getElementById('embeddedChatBody').scrollTop = document.getElementById('embeddedChatBody').scrollHeight; }
+    
+    const el2 = document.getElementById(baseId + '-flt');
+    if (el2) { el2.innerText = text; document.getElementById('floatingChatBody').scrollTop = document.getElementById('floatingChatBody').scrollHeight; }
 }
 
-document.getElementById('aiChatInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') sendToManager();
-});
+// 讓兩個輸入框都能按 Enter 送出
+function handleEnter(e, source) {
+    if (e.key === 'Enter') sendToManager(source);
+}
 
 </script>
 </body>
