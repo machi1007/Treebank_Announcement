@@ -180,6 +180,51 @@ nav.system-nav a:hover {
 .embedded-chat-card .ai-chat-body {
     border-radius: 0; /* 覆蓋原本的圓角 */
 }
+/* 生成式 AI 問號提示框樣式 */
+.gen-ai-tooltip {
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    position: relative;
+    display: inline-block;
+}
+.gen-ai-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 280px;
+    background-color: #2c3e50;
+    color: #fff;
+    text-align: left;
+    border-radius: 8px;
+    padding: 12px;
+    position: absolute;
+    z-index: 100;
+    top: 130%; /* 出現在問號下方 */
+    left: 50%;
+    transform: translateX(-50%); /* 讓框框置中對齊問號 */
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.6;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none; /* 避免滑鼠干擾 */
+}
+/* 畫一個小三角形指著問號 */
+.gen-ai-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent #2c3e50 transparent;
+}
+.gen-ai-tooltip:hover .tooltip-text,
+.gen-ai-tooltip:active .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
 
 
 </style>
@@ -359,7 +404,7 @@ nav.system-nav a:hover {
 </table>
 </div>
 <div class="section">
-  <h2>✨ AI支援</h2>
+  <h2>✨ 雙AI系統輔助</h2>
 <div class="ai-chat-widget">
     <div class="ai-chat-btn" id="aiChatBtn" onclick="toggleChat()">🏦</div>
     <div class="ai-chat-window" id="aiChatWindow">
@@ -406,7 +451,17 @@ nav.system-nav a:hover {
           </button>
       </div>
 <div class="card embedded-chat-card">
-    <h3>🏦 大樹行長辦公室 (AI大樹)</h3>
+     <h3>🏦 大樹行長辦公室 (AI 助理)
+        <div class="gen-ai-tooltip">❓
+            <span class="tooltip-text">
+                <b>💡 什麼是生成式 AI？</b><br>
+                這裡的大樹行長使用的是「<b>生成式 AI</b>」與「<b>雲端運算</b>」技術。<br><br>
+                與旁邊預測股價的「邊緣運算 (用你的設備計算)」不同，你的問題會透過網路傳送到 Google 的超級電腦，由強大的 Gemini AI 結合目前的經濟數據，「生成」出像真人般的專屬回答！<br><br>
+                這也是為什麼發問後，需要等待一下網路傳輸的時間喔！
+            </span>
+        </div>
+    </h3>
+
     <div class="ai-chat-body" id="embeddedChatBody">
         <div class="ai-msg manager">同學你好！我是大樹銀行的行長。對於現在的通膨、股價或班級經濟有任何問題，都可以問我喔！</div>
     </div>
