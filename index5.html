@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>大樹銀行刮刮樂 - 十連抽爆發版</title>
+<title>大樹銀行刮刮樂</title>
 <style>
 body {
   font-family: "Microsoft JhengHei";
@@ -255,13 +255,12 @@ const encouragingText = document.getElementById('encouraging-text');
 const resultBanner = document.getElementById('result-banner');
 const resetBtn = document.getElementById('reset-btn');
 const revealBtn = document.getElementById('reveal-btn');
-const tenPullBtn = document.getElementById('ten-pull-btn'); // 抓取十連抽按鈕
+const tenPullBtn = document.getElementById('ten-pull-btn');
 const ticketInfo = document.getElementById('ticket-info');
 const ticketButtons = document.querySelectorAll('#ticket-select button');
 const numberGrid = document.getElementById('number-grid');
 const currentTicketDisplay = document.getElementById('current-ticket-display');
 
-// 抓取彈出視窗元素
 const tenPullOverlay = document.getElementById('ten-pull-overlay');
 const tenPullGrid = document.getElementById('ten-pull-grid');
 const tenPullTotal = document.getElementById('ten-pull-total');
@@ -412,7 +411,8 @@ function showTicketInfo(ticket){
     else if(num>=100) span.classList.add("prize-100");
     else span.classList.add("prize-none");
     
-    const symbol = p.name === "沒中獎" ? "💩" : symbolMap[p.name];
+    // ⭐ 在這裡修改中央標籤區的「沒中獎」圖案
+    const symbol = p.name === "沒中獎" ? "☁️" : symbolMap[p.name];
     const percentStr = Number((p.chance * 100).toFixed(3)) + '%';
     span.innerHTML = `<div>${symbol} ${p.name}</div><div class="prize-percent">(${percentStr})</div>`;
     container.appendChild(span);
@@ -551,7 +551,6 @@ function drawRandomTicket() {
 
 resetBtn.addEventListener('click', drawRandomTicket);
 
-// --- 新增：十連抽邏輯 ---
 tenPullBtn.addEventListener('click', () => {
   let available = [];
   for(let i=0; i<=99; i++){
@@ -564,25 +563,25 @@ tenPullBtn.addEventListener('click', () => {
     return;
   }
 
-  // 隨機抽 10 個不重複的號碼
   let picked = [];
   for(let i=0; i<10; i++) {
     let randIdx = Math.floor(Math.random() * available.length);
     picked.push(available[randIdx]);
-    available.splice(randIdx, 1); // 抽出後從候選清單移除
+    available.splice(randIdx, 1); 
   }
 
   let resultsHTML = '';
   let totalWin = 0;
 
   picked.forEach(num => {
-    usedTickets[currentTicket].push(num); // 標記為已使用
+    usedTickets[currentTicket].push(num); 
     
     let prize = getRandomPrize(); 
     let winAmount = prize === "沒中獎" ? 0 : parseInt(prize.replace('點', ''));
     totalWin += winAmount;
 
-    let symbol = prize === "沒中獎" ? "💩" : symbolMap[prize];
+    // ⭐ 在這裡修改「十連抽」介面裡的「沒中獎」圖案
+    let symbol = prize === "沒中獎" ? "☁️" : symbolMap[prize];
     let statusClass = prize === "沒中獎" ? "lose" : "win";
 
     resultsHTML += `
@@ -594,13 +593,11 @@ tenPullBtn.addEventListener('click', () => {
     `;
   });
 
-  // 更新畫面
   refreshGridStatus();
   tenPullGrid.innerHTML = resultsHTML;
   tenPullTotal.innerHTML = `總計獲得：<span>${totalWin} 點</span>`;
-  tenPullOverlay.style.display = 'flex'; // 顯示彈出視窗
+  tenPullOverlay.style.display = 'flex'; 
 
-  // 避免目前的刮刮樂剛好被十連抽抽走，自動換一張新的
   if(usedTickets[currentTicket].includes(currentLuckyNumber)) {
      drawRandomTicket();
   }
