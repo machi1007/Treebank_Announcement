@@ -257,16 +257,26 @@ nav.system-nav a:hover {
     <div class="cardValue" id="cpi"></div>
   </div>
   <div class="card">
+    <div class="card-title">CPI 日成長率</div>
+    <div class="card-value" id="cpiGrowthDisplay" style="font-size: 28px; font-weight: bold;">-- %</div>
+    <div style="font-size:13px; color:#7f8c8d; margin-top:5px;" id="cpiGrowthStatus">等待資料輸入...</div>
+  </div>
+  <div class="card">
     <div class="cardTitle">貨幣供給量</div>
     <div class="cardValue" id="money"></div>
   </div>
-<div class="card">
+  <div class="card">
     <div class="cardTitle">名目 GDP<br><span style="font-size:14px; color:#7f8c8d;">(未扣除通膨)</span></div>
     <div class="cardValue" id="gdp"></div>
   </div>
   <div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
     <div class="cardTitle">實質 GDP<br><span style="font-size:14px; color:#16a085;">(真實產值)</span></div>
     <div class="cardValue" id="realGdp" style="color:#16a085;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">GDP日成長率</div>
+    <div class="card-value" id="gdpGrowthDisplay" style="font-size: 28px; font-weight: bold;">-- %</div>
+    <div style="font-size:13px; color:#7f8c8d; margin-top:5px;" id="gdpGrowthStatus">等待資料輸入...</div>
   </div>
   <div class="card">
     <div class="cardTitle">實質經濟成長率<br><span style="font-size:14px; color:#7f8c8d;">(扣除通膨後)</span></div>
@@ -312,8 +322,9 @@ nav.system-nav a:hover {
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
             <p><b>v9.0</b>：
                 <ul>
-                    <li><b>生成式AI支援：</b>【重量更新】可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
- 
+                    <li><b>生成式AI支援：</b>可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
+                    <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
+
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
@@ -731,12 +742,98 @@ if (currentGini === "-") {
     giniText = "☠️ 資產極端集中"; giniColor = "#8e44ad";
 }
 
-// --- AI 政策建議 ---
+// --- AI 政策建議 (進階多元終極版 - 修正變數衝突) ---
 let adviceList = [];
-if (inflation >= 1.3) adviceList.push("<b>【抑制通膨】</b> 市場熱錢氾濫，建議「調升存款利率」吸引資金回流銀行，或暫緩發放加碼獎金。");
-if (currentGini >= 0.4) adviceList.push("<b>【財富重分配】</b> 貧富差距開始擴大，建議開徵「富人稅」或提高基層職務的基本薪資，避免底層破產。");
-if (currentRealSalary < 25 && inflation > 1.1) adviceList.push("<b>【民生警告】</b> 實質購買力正在下降！雖然薪水變多，但物價漲更兇，學生可能會覺得錢不夠用。");
-if (adviceList.length === 0) adviceList.push("<b>【穩定發展】</b> 目前各項經濟指標均在健康範圍，建議維持現有政策，繼續觀察市場動向。");
+
+// 1. 【安全抓取成長率】改用 aiGdpGrowth 與 aiCpiGrowth 避免與系統原本的變數撞名
+let aiGdpGrowth = 0;
+let aiCpiGrowth = 0;
+if (typeof historyData !== 'undefined' && historyData.length >= 2) {
+    let todayRec = historyData[historyData.length - 1];
+    let yesterdayRec = historyData[historyData.length - 2];
+    if (yesterdayRec.gdp > 0) aiGdpGrowth = ((todayRec.gdp - yesterdayRec.gdp) / yesterdayRec.gdp) * 100;
+    if (yesterdayRec.cpi !== 0 && yesterdayRec.cpi !== undefined) aiCpiGrowth = ((todayRec.cpi - yesterdayRec.cpi) / Math.abs(yesterdayRec.cpi)) * 100;
+} else if (typeof gdpGrowth !== 'undefined') {
+    aiGdpGrowth = gdpGrowth;
+}
+
+// -----------------------------------------
+// 1. 【物價與通膨維度】 (過熱 vs 緊縮)
+// -----------------------------------------
+if (typeof inflation !== 'undefined') {
+    if (inflation >= 1.3) {
+        adviceList.push("<b>🔥【抑制通膨】</b> 市場熱錢氾濫，物價飛漲。建議「調升存款利率」吸引資金回流大樹銀行，或暫緩發放各項加碼獎金。");
+    } else if (inflation <= 0.95) {
+        adviceList.push("<b>❄️【通貨緊縮】</b> 學生消費意願低迷，市場資金凍結。建議「調降利率」、舉辦班級特賣會，或發放『限期消費券』刺激經濟。");
+    }
+}
+
+// -----------------------------------------
+// 2. 【經濟成長維度】 (衰退 vs 停滯性通膨)
+// -----------------------------------------
+if (aiGdpGrowth < -2.0 && (typeof inflation !== 'undefined' && inflation >= 1.2)) {
+    adviceList.push("<b>🚨【危機：停滯性通膨】</b> 經濟正在衰退，但物價卻持續上漲！這是最危險的狀態。建議立刻進行「定向紓困」(只補助低資產)，並暫停全民發錢。");
+} else if (aiGdpGrowth < -5.0) {
+    adviceList.push("<b>🆘【挽救衰退】</b> GDP 出現嚴重負成長！建議立刻擴大「政府支出」(例如老師發包更多有獎勵的班級任務) 來創造就業與收入。");
+} else if (aiGdpGrowth > 10.0 && (typeof inflation !== 'undefined' && inflation > 1.2)) {
+    adviceList.push("<b>♨️【經濟過熱】</b> 發展極度猛烈但伴隨高通膨。建議啟動「宏觀調控」，適度提高各項班級服務的收費標準，替市場降溫。");
+}
+
+// -----------------------------------------
+// 3. 【社會公平維度】 (貧富差距)
+// -----------------------------------------
+if (typeof currentGini !== 'undefined') {
+    if (currentGini >= 0.45) {
+        adviceList.push("<b>⚠️【貧富懸殊】</b> 吉尼係數處於危險地帶！少數大戶壟斷財富。強烈建議開徵「富人稅/資產稅」，或大幅提高基層職務的基本薪資，避免底層學生破產退場。");
+    } else if (currentGini < 0.2) {
+        adviceList.push("<b>💤【動力警告】</b> 目前財富極度平均，但也可能代表缺乏「努力賺錢」的誘因。建議設計少數高報酬的挑戰任務，激發學生的企圖心。");
+    }
+}
+
+// -----------------------------------------
+// 4. 【民生痛苦指數】 
+// -----------------------------------------
+if (typeof currentRealSalary !== 'undefined' && currentRealSalary < 25 && (typeof inflation !== 'undefined' && inflation > 1.1)) {
+    adviceList.push("<b>🛒【民生警告】</b> 實質購買力顯著下降！雖然帳面薪水變多，但買不起東西。請留意班級氣氛，考慮實施價格補貼。");
+}
+
+// -----------------------------------------
+// 5. 【股市健康度維度】 (泡沫風險)
+// -----------------------------------------
+if (typeof valuationRatio !== 'undefined') {
+    if (valuationRatio >= 2.0) {
+        adviceList.push("<b>💥【股市泡沫破裂風險】</b> 班級總市值已遠超實體經濟 (GDP) 規模！資金過度集中於炒股。建議提高「股票交易稅」，或限制單日購買張數，引導資金回歸實體消費。");
+    } else if (valuationRatio <= 0.5) {
+        adviceList.push("<b>🛡️【股市低估】</b> 目前股價被嚴重低估，市場恐慌情緒蔓延。老師 (國安基金) 可考慮適度進場護盤，重建投資人信心。");
+    }
+}
+
+// -----------------------------------------
+// 6. 【進階貨幣與利率狀態】
+// -----------------------------------------
+// a. 實質負利率
+if (typeof fixedRate !== 'undefined' && aiCpiGrowth > fixedRate) {
+    adviceList.push(`<b>📉【實質負利率】</b> 物價飆漲速度 (CPI漲幅 ${aiCpiGrowth.toFixed(1)}%) 已超越定存利率！學生的存款實質上正在「變薄」。建議大樹行長考慮「升息」，或提醒學生將資金轉向資產保值。`);
+}
+
+// b. 貨幣超發 / 流動性陷阱
+if (typeof money !== 'undefined' && typeof realGdp !== 'undefined' && realGdp > 0) {
+    let moneyToGdpRatio = money / realGdp;
+    if (moneyToGdpRatio >= 3.0) { 
+        adviceList.push("<b>💸【貨幣超發警告】</b> 市場上的鈔票(點數)數量遠大於實質經濟產出！這是惡性通膨的前兆。強烈建議推出高價的「特權卡/免死金牌」等奢侈品來回收市場多餘資金。");
+    }
+    
+    if (money > 15000 && aiGdpGrowth <= 0) { 
+        adviceList.push("<b>🧊【流動性陷阱】</b> 學生手中握有大量點數，卻不願消費或投資，市場失去活水。建議實施「負利率(收帳管費)」，或舉辦「限時特賣會」逼迫資金流動！");
+    }
+}
+
+// -----------------------------------------
+// 7. 【完美狀態 / 預設值】
+// -----------------------------------------
+if (adviceList.length === 0) {
+    adviceList.push("<b>🌟【黃金時代】</b> 目前經濟成長平穩、物價受控且財富分配健康。建議維持現有政策，這是一個完美的「金髮女孩經濟 (Goldilocks Economy)」狀態！");
+}
 
 // --- 寫入最上方的儀表板 ---
 document.getElementById("inflation").innerText = inflation;
@@ -1382,6 +1479,109 @@ function updateMessageInBoth(baseId, text) {
 function handleEnter(e, source) {
     if (e.key === 'Enter') sendToManager(source);
 }
+
+// 新增：計算並更新 GDP 成長率的專屬函數
+function updateGdpGrowth(yesterdayGdp, todayGdp) {
+    const displayEl = document.getElementById('gdpGrowthDisplay');
+    const statusEl = document.getElementById('gdpGrowthStatus');
+
+    // 檢查是否有足夠的資料可以計算
+    if (!yesterdayGdp || yesterdayGdp <= 0 || !todayGdp) {
+        displayEl.innerText = "-- %";
+        displayEl.style.color = "#333";
+        statusEl.innerText = "缺乏昨日資料，無法比較";
+        return 0;
+    }
+
+    // 計算成長率公式：(今天 - 昨天) / 昨天 * 100
+    const growthRate = ((todayGdp - yesterdayGdp) / yesterdayGdp) * 100;
+    
+    // 判斷正負值來決定顏色與箭頭 (台灣股市習慣：紅漲綠跌)
+    const isPositive = growthRate >= 0;
+    const color = isPositive ? '#e74c3c' : '#2ecc71'; 
+    const arrow = isPositive ? '▲' : '▼';
+    
+    // 更新畫面顯示
+    displayEl.style.color = color;
+    displayEl.innerText = `${arrow} ${Math.abs(growthRate).toFixed(2)}%`;
+    statusEl.innerText = isPositive ? "🔥 經濟擴張中 (利多)" : "❄️ 經濟放緩中 (利空)";
+    
+    return growthRate; // 回傳數值，方便你未來餵給 AI 模型
+}
+
+// 升級版：自動從歷史資料庫 (historyData) 計算各種日成長率
+function autoCalculateDailyGrowth() {
+    // 確保資料庫裡至少有兩天的資料才能比較
+    if (typeof historyData !== 'undefined' && historyData.length >= 2) {
+        // 取得最後一天 (今天) 和倒數第二天 (昨天) 的整筆資料
+        const todayRecord = historyData[historyData.length - 1];
+        const yesterdayRecord = historyData[historyData.length - 2];
+        
+        // 1. 計算 GDP 成長率
+        if (todayRecord.gdp !== undefined && yesterdayRecord.gdp !== undefined) {
+            updateGdpGrowth(yesterdayRecord.gdp, todayRecord.gdp);
+        }
+
+        // 2. 計算 CPI 成長率 (對應您資料庫中的 cpi 欄位)
+        if (todayRecord.cpi !== undefined && yesterdayRecord.cpi !== undefined) {
+            updateCpiGrowth(yesterdayRecord.cpi, todayRecord.cpi);
+        }
+    } else {
+        // 資料不足兩天的防呆處理
+        ['gdpGrowthDisplay', 'cpiGrowthDisplay'].forEach(id => {
+            let el = document.getElementById(id);
+            if(el) { el.innerText = "-- %"; el.style.color = "#333"; }
+        });
+        ['gdpGrowthStatus', 'cpiGrowthStatus'].forEach(id => {
+            let el = document.getElementById(id);
+            if(el) el.innerText = "資料不足兩天，無法計算";
+        });
+    }
+}
+
+// 綁定延遲執行 (確保網頁與資料庫載入完成後才去計算)
+setTimeout(autoCalculateDailyGrowth, 500);
+
+// 新增：計算並更新 CPI 日成長率的專屬函數
+function updateCpiGrowth(yesterdayCpi, todayCpi) {
+    const displayEl = document.getElementById('cpiGrowthDisplay');
+    const statusEl = document.getElementById('cpiGrowthStatus');
+
+    // 檢查是否有資料 (CPI 可能為 0，所以不能用 !yesterdayCpi 阻擋 0 的狀況)
+    if (yesterdayCpi === undefined || todayCpi === undefined) {
+        if(displayEl) displayEl.innerText = "-- %";
+        if(statusEl) statusEl.innerText = "缺乏昨日資料，無法比較";
+        return 0;
+    }
+
+    // 計算成長幅度公式 (若昨天為0，則避免除以0的錯誤)
+    let growthRate = 0;
+    if (yesterdayCpi !== 0) {
+        growthRate = ((todayCpi - yesterdayCpi) / Math.abs(yesterdayCpi)) * 100;
+    } else {
+        // 如果昨天 CPI 剛好是 0，直接取今天的絕對差距當作成長率
+        growthRate = todayCpi > 0 ? 100 : (todayCpi < 0 ? -100 : 0);
+    }
+    
+    // 判斷正負值：CPI 上漲(通膨惡化)用紅色，CPI 下跌(通膨降溫)用綠色
+    const isPositive = growthRate > 0;
+    const color = isPositive ? '#e74c3c' : (growthRate < 0 ? '#2ecc71' : '#f39c12'); 
+    const arrow = isPositive ? '▲' : (growthRate < 0 ? '▼' : '-');
+    
+    // 更新畫面顯示
+    if(displayEl) {
+        displayEl.style.color = color;
+        displayEl.innerText = growthRate === 0 ? `- 0.00%` : `${arrow} ${Math.abs(growthRate).toFixed(2)}%`;
+    }
+    if(statusEl) {
+        if (growthRate > 0) statusEl.innerText = "🔥 通膨加速升溫 (利空)";
+        else if (growthRate < 0) statusEl.innerText = "❄️ 通膨壓力放緩 (利多)";
+        else statusEl.innerText = "⚖️ 物價漲幅持平";
+    }
+    
+    return growthRate;
+}
+
 
 </script>
 </body>
