@@ -377,6 +377,7 @@ nav.system-nav a:hover {
                 <ul>
                     <li><b>生成式AI支援：</b>可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
                     <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
+                    <li><b>機器語音回覆：</b>新增機器人語音回答內容。</li>
 
                 </ul>
             </p>
@@ -514,7 +515,6 @@ nav.system-nav a:hover {
               🚀 套用參數並重新預測
           </button>
       </div>
-
 <div class="robot-container">
     <div id="robot-avatar">
         <div class="robot-eyes">
@@ -524,8 +524,8 @@ nav.system-nav a:hover {
         <div class="robot-mouth" id="robot-mouth"></div>
     </div>
     <button onclick="playAiResponse()">讓機器人說話</button>
+    <button onclick="stopSpeaking()" style="background-color: #e74c3c; color: white;">🛑 停止說話</button>
 </div>
-
 <div class="card embedded-chat-card">
      <h3>🏦 大樹銀行行長辦公室【生成式AI、雲端運算】
         <div class="gen-ai-tooltip"> ℹ️
@@ -1688,6 +1688,25 @@ function speakText(text) {
         mouth.classList.remove('speaking');
     };
 
+// 放在 speakText 函式內，synth.speak(utterThis) 之前
+const eyes = document.querySelectorAll('.eye');
+if (text.includes("升溫") || text.includes("利空") || text.includes("惡化")) {
+    eyes.forEach(eye => {
+        eye.style.background = '#e74c3c'; // 警戒紅
+        eye.style.boxShadow = '0 0 10px #e74c3c';
+    });
+} else if (text.includes("放緩") || text.includes("降溫") || text.includes("利多")) {
+    eyes.forEach(eye => {
+        eye.style.background = '#2ecc71'; // 舒適綠
+        eye.style.boxShadow = '0 0 10px #2ecc71';
+    });
+} else {
+    eyes.forEach(eye => {
+        eye.style.background = '#3498db'; // 恢復預設藍
+        eye.style.boxShadow = '0 0 10px #3498db';
+    });
+}
+
     // 開始播放
     synth.speak(utterThis);
 }
@@ -1696,6 +1715,14 @@ function speakText(text) {
 function playAiResponse() {
     // 讓機器人唸出最後一次記錄下來的 AI 回覆
     speakText(lastAiResponse);
+}
+
+function stopSpeaking() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // 強制停止語音
+    }
+    // 把嘴巴的動畫關掉
+    document.getElementById('robot-mouth').classList.remove('speaking');
 }
 
 </script>
