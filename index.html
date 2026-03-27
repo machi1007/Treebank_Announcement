@@ -727,7 +727,7 @@ nav.system-nav a:hover {
 let baseAsset = 500
 let students = 28
 
-let totalShares = 320;
+let totalShares = 410;
 
 let baseSalary = 30
 let adjustRatio = 0.8
@@ -1268,17 +1268,83 @@ new Chart(document.getElementById("happinessGaugeChart"), {
 });
 
 /* ======================
-🚥 景氣對策信號燈
+🚥 景氣對策信號燈 (精準抓取數據版)
 ====================== */
-let currentGdpGrowth = parseFloat(gdpGrowth); // 用實質成長率判斷
+let currentGdpGrowth = parseFloat(gdpGrowth) || 0; 
 let sigText = "", sigDesc = "", activeLight = "";
 
-if (currentGdpGrowth >= 30) { activeLight = "light-red"; sigText = "🔴 紅燈 (景氣過熱)"; sigDesc = "經濟擴張太快，注意通膨風險！"; document.getElementById(activeLight).style.cssText = "background:#e74c3c; color:#e74c3c;"; } 
-else if (currentGdpGrowth >= 20) { activeLight = "light-yellow-red"; sigText = "🟠 黃紅燈 (景氣活絡)"; sigDesc = "經濟表現強勁，資金充裕。"; document.getElementById(activeLight).style.cssText = "background:#e67e22; color:#e67e22;"; } 
-else if (currentGdpGrowth >= 10) { activeLight = "light-green"; sigText = "🟢 綠燈 (景氣穩定)"; sigDesc = "經濟穩定成長，最佳健康狀態。"; document.getElementById(activeLight).style.cssText = "background:#2ecc71; color:#2ecc71;"; } 
-else if (currentGdpGrowth >= 0) { activeLight = "light-yellow-blue"; sigText = "🟡 黃藍燈 (景氣欠佳)"; sigDesc = "經濟放緩，須密切關注。"; document.getElementById(activeLight).style.cssText = "background:#f1c40f; color:#f1c40f;"; } 
-else { activeLight = "light-blue"; sigText = "🔵 藍燈 (景氣低迷)"; sigDesc = "經濟衰退，建議採取刺激政策。"; document.getElementById(activeLight).style.cssText = "background:#3498db; color:#3498db;"; }
+// 1. 計算綜合分數 (總分 12 分)
+let totalScore = 0;
 
+// 【指標 A】實質經濟成長率 (滿分 4 分)
+if (currentGdpGrowth >= 10) totalScore += 4;
+else if (currentGdpGrowth >= 2) totalScore += 3;
+else if (currentGdpGrowth >= 0) totalScore += 2;
+else totalScore += 0;
+
+// 【指標 B & C】股價與吉尼係數 (滿分 8 分)
+try {
+    // 💡 關鍵修改：直接從最新的歷史資料庫抓取數字，避開 HTML 標籤干擾
+    let latestData = historyData[historyData.length - 1];
+    
+    let currentStock = parseFloat(latestData.stockp) || parseFloat(latestData.stock) || 0;
+    let currentGini = parseFloat(latestData.gini);
+
+    // 防呆：如果真的沒有填寫 gini，才給予 0.35 的預設值
+    if (isNaN(currentGini)) {
+        currentGini = 0.35;
+    }
+
+    // 📈 股價評分
+    if (currentStock >= 30) totalScore += 5;      
+    else if (currentStock > 20) totalScore += 4; 
+    else if (currentStock > 15) totalScore += 3; 
+    else if (currentStock > 10) totalScore += 2; 
+    else if (currentStock > 0) totalScore += 1;  
+    else totalScore += 1.5;
+
+    // ⚖️ 吉尼係數評分
+    if (currentGini < 0.3) totalScore += 3;
+    else if (currentGini <= 0.4) totalScore += 2;
+    else totalScore += 0;
+    
+} catch (e) {
+    totalScore += 3.5; // 發生任何錯誤給予基本分
+}
+
+// 2. 根據總分決定燈號與文字
+if (totalScore >= 10) { 
+    activeLight = "light-red"; 
+    sigText = "🔴 紅燈 (景氣過熱)"; 
+    sigDesc = "經濟與投資極度熱絡，注意通膨風險！(綜合分數:" + totalScore + ")"; 
+    document.getElementById(activeLight).style.cssText = "background:#e74c3c; color:#e74c3c;"; 
+} 
+else if (totalScore >= 8) { 
+    activeLight = "light-yellow-red"; 
+    sigText = "🟠 黃紅燈 (景氣活絡)"; 
+    sigDesc = "各項指標表現強勁，資金充裕。(綜合分數:" + totalScore + ")"; 
+    document.getElementById(activeLight).style.cssText = "background:#e67e22; color:#e67e22;"; 
+} 
+else if (totalScore >= 6) { 
+    activeLight = "light-green"; 
+    sigText = "🟢 綠燈 (景氣穩定)"; 
+    sigDesc = "經濟、股價與分配皆達穩定，健康狀態。(綜合分數:" + totalScore + ")"; 
+    document.getElementById(activeLight).style.cssText = "background:#2ecc71; color:#2ecc71;"; 
+} 
+else if (totalScore >= 4) { 
+    activeLight = "light-yellow-blue"; 
+    sigText = "🟡 黃藍燈 (景氣欠佳)"; 
+    sigDesc = "整體經濟動能放緩，須密切關注。(綜合分數:" + totalScore + ")"; 
+    document.getElementById(activeLight).style.cssText = "background:#f1c40f; color:#f1c40f;"; 
+} 
+else { 
+    activeLight = "light-blue"; 
+    sigText = "🔵 藍燈 (景氣低迷)"; 
+    sigDesc = "多項指標衰退，建議採取刺激政策。(綜合分數:" + totalScore + ")"; 
+    document.getElementById(activeLight).style.cssText = "background:#3498db; color:#3498db;"; 
+}
+
+// 3. 執行原本的 DOM 操作
 document.getElementById(activeLight).classList.add("light-active");
 document.getElementById("signalText").innerText = sigText;
 document.getElementById("signalDesc").innerText = sigDesc;
@@ -1735,6 +1801,7 @@ function stopSpeaking() {
     // 把嘴巴的動畫關掉
     document.getElementById('robot-mouth').classList.remove('speaking');
 }
+
 
 </script>
 </body>
