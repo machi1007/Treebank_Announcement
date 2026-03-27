@@ -1293,7 +1293,7 @@ new Chart(document.getElementById("happinessGaugeChart"), {
 });
 
 /* ======================
-🚥 景氣對策信號燈 (精準抓取數據版)
+🚥 景氣對策信號燈 (精準抓取數據版 - 灰燈修復版)
 ====================== */
 let currentGdpGrowth = parseFloat(gdpGrowth) || 0; 
 let sigText = "", sigDesc = "", activeLight = "";
@@ -1309,24 +1309,22 @@ else totalScore += 0;
 
 // 【指標 B & C】股價與吉尼係數 (滿分 8 分)
 try {
-    // 💡 關鍵修改：直接從最新的歷史資料庫抓取數字，避開 HTML 標籤干擾
     let latestData = historyData[historyData.length - 1];
     
     let currentStock = parseFloat(latestData.stockp) || parseFloat(latestData.stock) || 0;
     let currentGini = parseFloat(latestData.gini);
 
-    // 防呆：如果真的沒有填寫 gini，才給予 0.35 的預設值
     if (isNaN(currentGini)) {
         currentGini = 0.35;
     }
 
-    // 📈 股價評分
+    // 📈 股價評分 
     if (currentStock >= 30) totalScore += 5;      
     else if (currentStock > 20) totalScore += 4; 
     else if (currentStock > 15) totalScore += 3; 
     else if (currentStock > 10) totalScore += 2; 
     else if (currentStock > 0) totalScore += 1;  
-    else totalScore += 1.5;
+    else totalScore += 0; 
 
     // ⚖️ 吉尼係數評分
     if (currentGini < 0.3) totalScore += 3;
@@ -1334,10 +1332,20 @@ try {
     else totalScore += 0;
     
 } catch (e) {
-    totalScore += 3.5; // 發生任何錯誤給予基本分
+    totalScore += 3.5; 
 }
 
-// 2. 根據總分決定燈號與文字
+// 🧹 2. 關鍵修復：在決定新燈號之前，【先】洗掉所有燈號的舊顏色！
+let allLights = ["light-red", "light-yellow-red", "light-green", "light-yellow-blue", "light-blue"];
+allLights.forEach(id => {
+    let el = document.getElementById(id);
+    if (el) {
+        el.classList.remove("light-active");
+        el.style.cssText = ""; // 恢復成預設黯淡狀態
+    }
+});
+
+// 3. 根據總分決定燈號與文字，並【重新塗上】正確的顏色
 if (totalScore >= 10) { 
     activeLight = "light-red"; 
     sigText = "🔴 紅燈 (景氣過熱)"; 
@@ -1369,7 +1377,7 @@ else {
     document.getElementById(activeLight).style.cssText = "background:#3498db; color:#3498db;"; 
 }
 
-// 3. 執行原本的 DOM 操作
+// 4. 點亮該亮的燈，並更新文字
 document.getElementById(activeLight).classList.add("light-active");
 document.getElementById("signalText").innerText = sigText;
 document.getElementById("signalDesc").innerText = sigDesc;
