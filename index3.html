@@ -246,12 +246,16 @@ function calculate(){
   let cpi = ((price-basePrice)/basePrice)*100
   
   // 雙軌計算
-  let baseGDP = baseSalary*students + baseAsset*students*0.35
-  let nominalGdp = Math.round(salary*students + money*0.35)
-  let realGdp = Math.round(nominalGdp / inflation)
-  let nominalGdpGrowth = ((nominalGdp - baseGDP)/baseGDP*100)
-  let realGdpGrowth = ((realGdp - baseGDP)/baseGDP*100)
-
+  // 修正 1：統一基準點。基準 GDP 也應該反映 adjustRatio 的結構，這樣比較才有意義
+  let baseGDP = (baseSalary * adjustRatio) * students + baseAsset * students * 0.35;
+  
+  let nominalGdp = Math.round(salary * students + money * 0.35);
+  
+  // 修正 2：實質 GDP 應該透過「商品物價變化 (CPI)」來還原，而不是貨幣發行量
+  let realGdp = Math.round(nominalGdp / (1 + (cpi / 100)));
+  
+  let nominalGdpGrowth = ((nominalGdp - baseGDP) / baseGDP * 100);
+  let realGdpGrowth = ((realGdp - baseGDP) / baseGDP * 100);
   document.getElementById("inflation").innerText = inflation.toFixed(2)
   document.getElementById("salary").innerText = salary
   document.getElementById("cpi").innerText = cpi.toFixed(1)+"%"
