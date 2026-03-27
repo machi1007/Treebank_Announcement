@@ -370,15 +370,27 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v9.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v9.2) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p><b>v9.2</b>：
+                <ul>
+                    <li><b>機器語音回覆：</b>新增機器人語音回答內容。</li>
+                    <li><b>景氣燈號：</b>景氣燈號考量股市、資產差距與經濟狀況。</li>
+                    <li><b>經濟成長公式：</b>實質經濟成長率公式調整。</li>
+                </ul>
+            </p>
+            <p><b>v9.1</b>：
+                <ul>
+                    <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
+                </ul>
+            </p>
             <p><b>v9.0</b>：
                 <ul>
                     <li><b>生成式AI支援：</b>可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
                     <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
                     <li><b>機器語音回覆：</b>新增機器人語音回答內容。</li>
-
+                    <li><b>語音回覆：</b>新增機器人語音回答內容。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
@@ -764,7 +776,7 @@ let historyData=[
 {date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0, gini: 0.183},
 {date:"2026-03-25",inflation:1.32,salary:32,cpi:147.9,money:18454.80,gdp:7355,gdpGrowth:28.1,stockp:15.6,gini:0.200},
 {date:"2026-03-26",inflation:1.28,salary:31,cpi:147.9,money:17906.00,gdp:7135,gdpGrowth:24.3,stockp:14,gini:0.201},
-{date:"2026-03-27",inflation:1.35,salary:32,cpi:151.5,money:18866.40,gdp:7499,gdpGrowth:30.6,stockp:13.7,gini:0.199}
+{date:"2026-03-27",inflation:1.34,salary:32,cpi:153.0,money:18816.00,gdp:7482,gdpGrowth:34.3,stockp:13.7,gini:0.199}
 ]
 
 /* ======================
@@ -780,12 +792,15 @@ let stockp = latestData.stockp;
 let currentGini = latestData.gini !== undefined ? latestData.gini : "-";
 
 // === 🌟 第八版核心：雙軌 GDP 計算 ===
-// 基準 GDP (用基本薪資與初始貨幣推算)
-let baseGDP = baseSalary * students + baseAsset * students * 0.35; 
+// 修正 1：基準 GDP 的薪資也要打 8 折 (乘上 0.8)，確保跟現在的薪資站在同一個起跑線比較
+let baseGDP = (baseSalary * 0.8) * students + baseAsset * students * 0.35; 
+
 // 名目 GDP = 帳面上的點數總額 (含有通膨水分)
 let nominalGdp = Math.round(newSalary * students + money * 0.35);  
-// 實質 GDP = 擠掉通膨水分後的真實產值
-let realGdpVal = Math.round(nominalGdp / inflation);               
+
+// 修正 2：實質 GDP = 擠掉「物價上漲 (CPI)」的水分，而不是貨幣膨脹的水分
+// 這裡將原本的 inflation 改為 (1 + (cpi / 100))
+let realGdpVal = Math.round(nominalGdp / (1 + (cpi / 100)));                
 
 let nominalGdpGrowth = ((nominalGdp - baseGDP) / baseGDP * 100).toFixed(1);
 let realGdpGrowthVal = ((realGdpVal - baseGDP) / baseGDP * 100).toFixed(1);
@@ -794,7 +809,9 @@ let realGdpGrowthVal = ((realGdpVal - baseGDP) / baseGDP * 100).toFixed(1);
 let gdp = nominalGdp; 
 let gdpGrowth = realGdpGrowthVal;
 
-let currentRealSalary = (newSalary / inflation).toFixed(1); 
+// 修正 3：順手修復「實質薪資」！學生的真實購買力也應該是用物價 (CPI) 來平減
+let currentRealSalary = (newSalary / (1 + (cpi / 100))).toFixed(1);
+
 
 // --- 吉尼係數燈號 ---
 let giniText = "";
@@ -957,19 +974,24 @@ function movingAverage(data,period){
 }
 
 /* ======================
-🌟 歷史表 (雙軌升級版)
+🌟 歷史表 (雙軌升級版) - 修正版
 ====================== */
-let historyTable=document.getElementById("historyTable")
-let baseGDPForHistory = baseSalary*students + baseAsset*students*0.35
+let historyTable = document.getElementById("historyTable");
 
-historyData.forEach(h=>{
-  let nGDP = Math.round(h.salary*students + h.money*0.35)
-  let rGDP = Math.round(nGDP / h.inflation)
-  let nGrowth = ((nGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
-  let rGrowth = ((rGDP - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1)
+// 修正 1：基準 GDP 加上 0.8 的薪資調整係數
+let baseGDPForHistory = (baseSalary * 0.8) * students + baseAsset * students * 0.35;
+
+historyData.forEach(h => {
+  let nGDP = Math.round(h.salary * students + h.money * 0.35);
+  
+  // 修正 2：改用 CPI (h.cpi) 來還原實質 GDP
+  let rGDP = Math.round(nGDP / (1 + (h.cpi / 100)));
+  
+  let nGrowth = ((nGDP - baseGDPForHistory) / baseGDPForHistory * 100).toFixed(1);
+  let rGrowth = ((rGDP - baseGDPForHistory) / baseGDPForHistory * 100).toFixed(1);
   let hGini = h.gini !== undefined ? h.gini : "-";
 
-historyTable.innerHTML+=`
+  historyTable.innerHTML += `
   <tr>
     <td>${h.date}</td>
     <td>${h.inflation}</td>
@@ -977,35 +999,38 @@ historyTable.innerHTML+=`
     <td>${h.cpi}</td>
     <td>${Number(h.money).toFixed(2)}</td>
     <td>${nGDP}</td>
-    <td style="color:#e74c3c; font-weight:bold;">${nGrowth}</td>
+    <td style="color:#e74c3c; font-weight:bold;">${nGrowth}%</td>
     <td style="color:#16a085; font-weight:bold;">${rGDP}</td>
-    <td>${rGrowth}</td>
+    <td>${rGrowth}%</td>
     <td>${h.stockp}</td>
     <td>${hGini}</td> 
   </tr>
-  `
-})
+  `;
+});
 
 /* ======================
 🌟 折線圖 (雙軌 GDP 軌跡)
 ====================== */
-let labels=historyData.map(h=>h.date)
-let inflationHistory=historyData.map(h=>h.inflation)
-let salaryHistory=historyData.map(h=>h.salary)
-let cpiHistory=historyData.map(h=>h.cpi)
-let moneyHistory=historyData.map(h=>h.money)
-let stockpHistory=historyData.map(h=>h.stockp)
+let labels = historyData.map(h => h.date);
+let inflationHistory = historyData.map(h => h.inflation);
+let salaryHistory = historyData.map(h => h.salary);
+let cpiHistory = historyData.map(h => h.cpi);
+let moneyHistory = historyData.map(h => h.money);
+let stockpHistory = historyData.map(h => h.stockp);
 
-let gdpNominalHistory = historyData.map(h => Math.round(h.salary*students + h.money*0.35))
-let gdpRealHistory = historyData.map(h => Math.round((h.salary*students + h.money*0.35) / h.inflation))
-let gdpNominalGrowthHistory = gdpNominalHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
-let gdpRealGrowthHistory = gdpRealHistory.map(v => ((v - baseGDPForHistory)/baseGDPForHistory*100).toFixed(1))
+let gdpNominalHistory = historyData.map(h => Math.round(h.salary * students + h.money * 0.35));
 
-let giniHistory = historyData.map(h => h.gini !== undefined ? h.gini : null)
+// 🌟 修正：實質 GDP 改用 (1 + (h.cpi / 100)) 來平減，擠掉真實的物價水分
+let gdpRealHistory = historyData.map(h => Math.round((h.salary * students + h.money * 0.35) / (1 + (h.cpi / 100))));
 
-let ma5=movingAverage(stockpHistory,5)
-let ma10=movingAverage(stockpHistory,10)
-let ma20=movingAverage(stockpHistory,20)
+let gdpNominalGrowthHistory = gdpNominalHistory.map(v => ((v - baseGDPForHistory) / baseGDPForHistory * 100).toFixed(1));
+let gdpRealGrowthHistory = gdpRealHistory.map(v => ((v - baseGDPForHistory) / baseGDPForHistory * 100).toFixed(1));
+
+let giniHistory = historyData.map(h => h.gini !== undefined ? h.gini : null);
+
+let ma5 = movingAverage(stockpHistory, 5);
+let ma10 = movingAverage(stockpHistory, 10);
+let ma20 = movingAverage(stockpHistory, 20);
 
 const commonZoomOptions = {
     responsive: true,
