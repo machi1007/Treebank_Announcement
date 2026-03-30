@@ -357,7 +357,7 @@ nav.system-nav a:hover {
 
 <div class="notice">
 📢 <b>大樹點數銀行公告</b>
-<p>溫馨存款活動：<b>活存1.5%/2週、定存5%/月</b></p>
+<p>優惠定期存款活動：<b>定存7%/月</b></p>
 <b>【當前經濟狀況】</b>：
 <b id="announcement"></b>
 </div>
@@ -370,13 +370,18 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v9.2) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v9.3) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p><b>v9.3</b>：
+                <ul>
+                    <li><b>技術分析指標：</b>新增KD隨機指標。</li>
+                </ul>
+            </p>
             <p><b>v9.2</b>：
                 <ul>
                     <li><b>機器語音回覆：</b>新增機器人語音回答內容。</li>
-                    <li><b>景氣燈號：</b>景氣燈號考量股市、資產差距與經濟狀況。</li>
+                    <li><b>更新景氣燈號：</b>景氣燈號考量股市、資產差距與經濟狀況。</li>
                     <li><b>經濟成長公式：</b>實質經濟成長率公式調整。</li>
                 </ul>
             </p>
@@ -581,6 +586,8 @@ nav.system-nav a:hover {
     </span>
 </div>
 <div style="margin-top: 10px;">
+
+    <label><input type="checkbox" id="kdToggle"> 📉 KD 隨機指標</label>
     <label><input type="checkbox" id="rsiToggle"> 🌡️ RSI 情緒溫度計</label>
     <label><input type="checkbox" id="macdToggle"> 🚦 MACD 趨勢紅綠燈</label>
 </div>
@@ -744,8 +751,8 @@ let totalShares = 440;
 let baseSalary = 30
 let adjustRatio = 0.8
 
-let savingRate = 1.5
-let fixedRate = 5
+let savingRate = 1
+let fixedRate = 7
 
 let basePrice = 100
 
@@ -914,6 +921,30 @@ if (typeof money !== 'undefined' && typeof realGdp !== 'undefined' && realGdp > 
     
     if (money > 15000 && aiGdpGrowth <= 0) { 
         adviceList.push("<b>🧊【流動性陷阱】</b> 學生手中握有大量點數，卻不願消費或投資，市場失去活水。建議實施「負利率(收帳管費)」，或舉辦「限時特賣會」逼迫資金流動！");
+    }
+}
+
+
+// -----------------------------------------
+// 6.5 【技術面維度】 (KD 隨機指標)
+// -----------------------------------------
+if (typeof historyData !== 'undefined' && historyData.length >= 9) {
+    // 取得最新 K 與 D 值
+    let tempPrices = historyData.map(h => h.stockp);
+    let currentKDForAI = calculateKD(tempPrices, 9);
+    let latestK = currentKDForAI.K[currentKDForAI.K.length - 1];
+    let latestD = currentKDForAI.D[currentKDForAI.D.length - 1];
+
+    if (latestK !== null && latestD !== null) {
+        if (latestK > 80 && latestD > 80) {
+            adviceList.push(`<b>📉【技術面過熱】</b> KD指標雙雙突破 80 (K:${latestK}, D:${latestD})，進入「超買區」，短期內可能有回檔風險，建議提醒學生留意追高風險。`);
+        } else if (latestK < 20 && latestD < 20) {
+            adviceList.push(`<b>📈【技術面超賣】</b> KD指標跌破 20 (K:${latestK}, D:${latestD})，進入「超賣區」，市場情緒過度悲觀，隨時有反彈契機。`);
+        } else if (latestK > latestD) {
+            adviceList.push(`<b>✨【技術面偏多】</b> 目前 KD 呈現黃金交叉狀態 (K:${latestK} > D:${latestD})，短線動能偏多，有利股市發展。`);
+        } else {
+            adviceList.push(`<b>⚠️【技術面偏空】</b> 目前 KD 呈現死亡交叉狀態 (K:${latestK} < D:${latestD})，短線動能偏弱，投資氛圍較為保守。`);
+        }
     }
 }
 
@@ -1169,6 +1200,7 @@ document.getElementById("ma20Toggle").onchange = function() {
   stockChartInstance.update();
 };
 
+
 document.getElementById("rsiToggle").onchange = function() {
   if (this.checked) {
     if (!document.getElementById("rsiChart")) {
@@ -1199,6 +1231,7 @@ document.getElementById("macdToggle").onchange = function() {
   } else { document.getElementById("macdChart")?.parentElement.remove(); }
 };
 
+// ================= 補回：自訂均線 (MA) 功能 =================
 let customMaDatasets = []; 
 function addCustomMA() {
     let period = parseInt(document.getElementById("customMaInput").value);
@@ -1217,6 +1250,62 @@ function clearCustomMA() {
     stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(ds => !customMaDatasets.includes(ds));
     customMaDatasets = []; 
     stockChartInstance.update();
+}
+
+/* ======================
+📉 KD 指標計算與圖表 (完全比照 RSI 寫法)
+====================== */
+function calculateKD(prices, period = 9) {
+    let kData = [], dData = [];
+    let k = 50, d = 50; 
+    for (let i = 0; i < prices.length; i++) {
+        if (i < period - 1) {
+            kData.push(null); dData.push(null);
+            continue;
+        }
+        let slice = prices.slice(i - period + 1, i + 1);
+        let highest = Math.max(...slice);
+        let lowest = Math.min(...slice);
+        let rsv = 50;
+        if (highest !== lowest) {
+            rsv = ((prices[i] - lowest) / (highest - lowest)) * 100;
+        }
+        k = (2 / 3) * k + (1 / 3) * rsv;
+        d = (2 / 3) * d + (1 / 3) * k;
+        kData.push(parseFloat(k.toFixed(2)));
+        dData.push(parseFloat(d.toFixed(2)));
+    }
+    return { K: kData, D: dData };
+}
+
+let kdData = calculateKD(stockpHistory, 9);
+
+// 綁定 KD 勾選框事件 (動態產生或移除 KD 圖表)
+if (document.getElementById("kdToggle")) {
+    document.getElementById("kdToggle").onchange = function() {
+      if (this.checked) {
+        if (!document.getElementById("kdChart")) {
+          let div = document.createElement("div");
+          div.className = "section";
+          div.innerHTML = `<h2>📉 KD 隨機指標</h2><canvas id="kdChart"></canvas>`;
+          document.getElementById("stockpChart").parentElement.insertAdjacentElement("afterend", div);
+          new Chart(document.getElementById("kdChart"), {
+            type: "line", 
+            data: { 
+                labels: labels, 
+                datasets: [
+                    { label: "K值(9)", data: kdData.K, borderColor: "#3498db", fill: false, tension: 0.1 },
+                    { label: "D值(9)", data: kdData.D, borderColor: "#e74c3c", fill: false, tension: 0.1 }
+                ] 
+            }, 
+            options: { ...commonZoomOptions, scales: { y: { min: 0, max: 100 } } }
+          });
+        }
+      } else { 
+          let chartElement = document.getElementById("kdChart");
+          if (chartElement) chartElement.parentElement.remove(); 
+      }
+    };
 }
 
 /* ======================
@@ -1530,7 +1619,7 @@ async function sendToManager(source) {
     // 顯示行長讀取中，並取得專屬 ID
     const loadingId = appendMessageToBoth('行長翻閱資料中...', 'manager');
 
- // 1. 【防彈版】歷史數據整理
+    // 1. 【防彈版】歷史數據整理
     let historyText = '無歷史紀錄';
     if (typeof historyData !== 'undefined' && Array.isArray(historyData)) {
         historyText = historyData.map((data, index) => {
@@ -1538,23 +1627,52 @@ async function sendToManager(source) {
         }).join('\n');
     }
 
-    // 2. 【防彈版】進階陣列數據抓取
+    // 2. 【防彈版】進階陣列數據抓取 (如果沒有資料絕對不會當機)
     let currentRsi = '未知';
     if (typeof rsiData !== 'undefined' && Array.isArray(rsiData) && rsiData.length > 0) {
         let lastRsi = rsiData[rsiData.length - 1];
-        // 確保它是數字才能用 toFixed
-        currentRsi = (!isNaN(lastRsi) && lastRsi !== null) ? Number(lastRsi).toFixed(2) : lastRsi;
+        currentRsi = (!isNaN(lastRsi) && lastRsi !== null) ? Number(lastRsi).toFixed(2) : '未知';
     }
 
     let currentMa5 = '未知';
     if (typeof ma5 !== 'undefined' && Array.isArray(ma5) && ma5.length > 0) {
-        currentMa5 = ma5[ma5.length - 1];
+        let lastMa5 = ma5[ma5.length - 1];
+        currentMa5 = (!isNaN(lastMa5) && lastMa5 !== null) ? Number(lastMa5).toFixed(2) : '未知';
+    }
+
+    let currentK = '未知', currentD = '未知';
+    if (typeof kdData !== 'undefined' && kdData && kdData.K && kdData.K.length > 0) {
+        let lastK = kdData.K[kdData.K.length - 1];
+        let lastD = kdData.D[kdData.D.length - 1];
+        currentK = (lastK !== null && !isNaN(lastK)) ? Number(lastK).toFixed(2) : '資料不足';
+        currentD = (lastD !== null && !isNaN(lastD)) ? Number(lastD).toFixed(2) : '資料不足';
+    }
+
+    let currentMacd = '未知', currentSignal = '未知', currentHist = '未知';
+    if (typeof macdData !== 'undefined' && macdData && macdData.macd && macdData.macd.length > 0) {
+        let lastMacd = macdData.macd[macdData.macd.length - 1];
+        let lastSignal = macdData.signal[macdData.signal.length - 1];
+        let lastHist = macdData.hist[macdData.hist.length - 1];
+        currentMacd = (lastMacd !== null && !isNaN(lastMacd)) ? Number(lastMacd).toFixed(2) : '資料不足';
+        currentSignal = (lastSignal !== null && !isNaN(lastSignal)) ? Number(lastSignal).toFixed(2) : '資料不足';
+        currentHist = (lastHist !== null && !isNaN(lastHist)) ? Number(lastHist).toFixed(2) : '資料不足';
+    }
+
+    let customMaText = '未開啟自訂均線';
+    if (typeof customMaDatasets !== 'undefined' && Array.isArray(customMaDatasets) && customMaDatasets.length > 0) {
+        customMaText = customMaDatasets.map(ds => {
+            if(ds && ds.data && ds.data.length > 0) {
+                let lastVal = ds.data[ds.data.length - 1];
+                return `${ds.label}: ${lastVal !== null && !isNaN(lastVal) ? Number(lastVal).toFixed(2) : '未知'}`;
+            }
+            return '';
+        }).filter(t => t !== '').join(', ') || '未開啟自訂均線';
     }
 
     const aiPredElement = document.getElementById("aiPrediction");
     const aiPredText = aiPredElement ? aiPredElement.innerText : '未知';
 
-    // 3. 組合給大樹行長的終極情報網 (就算變數壞掉也絕對顯示 '未知' 而不當機)
+    // 3. 組合給大樹行長的終極情報網
     const systemPrompt = `
         你現在是「大樹點數銀行」的行長，名字叫「大樹」。
         你在一個班級的經濟模擬系統中服務小學生/國中生。請用親切、鼓勵的語氣回答，字數精簡(約50-100字)。
@@ -1575,6 +1693,9 @@ async function sendToManager(source) {
         【股市與預測進階數據】：
         - 📊 目前 RSI 指數：${currentRsi} 
         - 📈 5日移動平均線(MA5)：${currentMa5} 點
+        - 📉 目前 KD 隨機指標：K值 ${currentK} / D值 ${currentD}
+        - 🚥 目前 MACD 指標：MACD值 ${currentMacd} / 訊號線(Signal) ${currentSignal} / 柱狀圖 ${currentHist}
+        - 📏 學生目前開啟的自訂均線：${customMaText}
         - 🤖 邊緣運算 AI 預測下一期股價：${aiPredText}
         
         【班級基礎經濟參數】：
@@ -1586,15 +1707,17 @@ async function sendToManager(source) {
         【行長專業知識庫】：
         如果學生問到技術分析或系統運作，請用以下簡單的比喻來解釋：
         1. RSI (情緒溫度計)：衡量市場是過度貪婪(買太多)還是過度恐懼(賣太多)。(大於70過熱，小於30過冷)
-        2. MACD (趨勢紅綠燈)：判斷目前股價的波段是往上衝還是往下跌。
-        3. 邊緣運算 AI：直接在平板裡運算的 AI，預測速度快且每台設備會有自己獨特的思考。
-        4. 生成式 AI：就是行長你本人，在雲端超級電腦運算，能根據龐大數據生成像真人一樣的回覆。
+        2. MACD (趨勢紅綠燈)：判斷目前股價的波段趨勢。MACD大於Signal(黃金交叉)代表轉強；柱狀圖由負轉正也是買進訊號。
+        3. KD 隨機指標：用來推算目前股價在近期的相對高低點。大於80代表市場過熱(超買)，小於20代表市場過冷(超賣)。如果 K 值大於 D 值代表黃金交叉(偏多)，反之為死亡交叉。
+        4. 移動平均線 (MA)：代表過去幾天的平均成本。例如 MA5 就是近5次的平均成本。
+        5. 邊緣運算 AI：直接在平板裡運算的 AI，預測速度快且每台設備會有自己獨特的思考。
+        6. 生成式 AI：就是行長你本人，在雲端超級電腦運算，能根據龐大數據生成像真人一樣的回覆。
 
         學生的問題是：${userText}
     `;
 
     try {
-        const response = await fetch(GAS_API_URL, {
+        const response = await fetch(typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '', {
             method: "POST",
             body: JSON.stringify({ prompt: systemPrompt })
         });
@@ -1602,15 +1725,13 @@ async function sendToManager(source) {
         const data = await response.json();
         updateMessageInBoth(loadingId, data.reply);
         
-        // 記錄 AI 這次的回答
-        lastAiResponse = data.reply;
+        if (typeof lastAiResponse !== 'undefined') lastAiResponse = data.reply;
 
-        // 檢查「靜音模式」是否被勾選
-        const isMuted = document.getElementById('muteToggle').checked;
+        const muteToggle = document.getElementById('muteToggle');
+        const isMuted = muteToggle ? muteToggle.checked : false;
         
-        // 如果沒有勾選靜音，才讓機器人自動說話
-        if (!isMuted) {
-            speakText(lastAiResponse);
+        if (!isMuted && typeof speakText === 'function') {
+            speakText(data.reply);
         }
 
     } catch (error) {
@@ -1835,6 +1956,7 @@ function stopSpeaking() {
     // 把嘴巴的動畫關掉
     document.getElementById('robot-mouth').classList.remove('speaking');
 }
+
 
 
 </script>
