@@ -348,7 +348,7 @@ nav.system-nav a:hover {
 </div>
 
 <nav class="system-nav">
-    <a href="https://ebank.ceag.kh.edu.tw/ebank/index2.php?bank=16370" target="_blank">💰 數位點數銀行</a>
+    <a href="https://ebank.ceag.kh.edu.tw/ebank/index2.php?bank=16370" target="_blank">💰 點數銀行(陳惠如、林憲宏)</a>
     <a href="index2.html" target="_blank">📖 查看經濟筆記</a>
     <a href="index3.html" target="_blank">📊 專用計算系統</a>
     <a href="https://machi1007.github.io/tree_receipt_lottery/" target="_blank">📜 發票抽獎系統</a>
@@ -373,9 +373,11 @@ nav.system-nav a:hover {
             🚀 大樹銀行版本更新日誌 (目前版本：v9.3) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p><b>v9.3</b>：
+            <p><b>v9.3</b>
                 <ul>
-                    <li><b>技術分析指標：</b>新增KD隨機指標。</li>
+                    <li><b>基礎技術指標：</b>新增「KD 隨機指標」，輔助判斷市場超買與超賣區。</li>
+                    <li><b>動能預警系統：</b>新增「KD 震盪指標 (KD OSC)」，提前抓出股價反轉時機。</li>
+                    <li><b>綜合風險模型：</b>新增「量化綜合風險指數 (QRI)」，結合基本面與技術面，一秒看懂當前大盤風險分數！</li>
                 </ul>
             </p>
             <p><b>v9.2</b>：
@@ -656,6 +658,31 @@ nav.system-nav a:hover {
             </div>
             
             <div style="font-size: 20px; font-weight: bold;" id="buffettText">計算中...</div>
+        </div>
+
+    </div>
+</div>
+
+<div class="section">
+    <h2>🚨 大樹銀行風險預警系統</h2>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">📉 KD震盪指標(KD OSC)</h3>
+            <p style="color: #7f8c8d; font-size: 14px;">( 追蹤 KD 隨機指標的開口與動能 )</p>
+            <div style="font-size: 40px; font-weight: bold; margin: 15px 0;" id="mdwsValue">--</div>
+            <div style="font-size: 18px; font-weight: bold; padding: 8px; border-radius: 8px; display: inline-block;" id="mdwsText">計算中...</div>
+            <p style="color: #555; font-size: 14px; margin-top: 15px;" id="mdwsDesc"></p>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-top:0; color:#2c3e50;">⚠️ 量化綜合風險指數(QRI)</h3>
+            <p style="color: #7f8c8d; font-size: 14px;">( 融合基本面巴菲特指標與技術面 RSI/KD )</p>
+            <div style="font-size: 45px; font-weight: bold; margin: 10px 0;" id="srriScore">--</div>
+            <div style="width: 100%; height: 20px; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);">
+                <div id="srriBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e67e22, #e74c3c); transition: width 1s ease;"></div>
+            </div>
+            <div style="font-size: 20px; font-weight: bold; color: white; background: #95a5a6; padding: 8px 15px; border-radius: 8px; display: inline-block;" id="srriText">計算中...</div>
         </div>
 
     </div>
@@ -1673,6 +1700,12 @@ async function sendToManager(source) {
     const aiPredElement = document.getElementById("aiPrediction");
     const aiPredText = aiPredElement ? aiPredElement.innerText : '未知';
 
+    // ✨【新增】抓取畫面上最新的進階風險指標 (已配合最新 HTML 的 ID 抓取)
+    let currentKdOscVal = document.getElementById("mdwsValue") ? document.getElementById("mdwsValue").innerText : '未知';
+    let currentKdOscState = document.getElementById("mdwsText") ? document.getElementById("mdwsText").innerText : '未知';
+    let currentQriScore = document.getElementById("srriScore") ? document.getElementById("srriScore").innerText : '未知';
+    let currentQriState = document.getElementById("srriText") ? document.getElementById("srriText").innerText : '未知';
+
     // 3. 組合給大樹行長的終極情報網
     const systemPrompt = `
         你現在是「大樹點數銀行」的行長，名字叫「大樹」。
@@ -1698,6 +1731,10 @@ async function sendToManager(source) {
         - 🚥 目前 MACD 指標：MACD值 ${currentMacd} / 訊號線(Signal) ${currentSignal} / 柱狀圖 ${currentHist}
         - 📏 學生目前開啟的自訂均線：${customMaText}
         - 🤖 邊緣運算 AI 預測下一期股價：${aiPredText}
+
+        【🚨大樹銀行風險預警系統 (最新情報)】：
+        - KD 震盪指標 (KD OSC)：數值 ${currentKdOscVal} / 狀態：${currentKdOscState}
+        - 量化綜合風險指數 (QRI)：分數 ${currentQriScore} / 狀態：${currentQriState}
         
         【班級基礎經濟參數】：
         - 基本薪資：${typeof baseSalary !== 'undefined' ? baseSalary : '未知'}
@@ -1713,6 +1750,8 @@ async function sendToManager(source) {
         4. 移動平均線 (MA)：代表過去幾天的平均成本。例如 MA5 就是近5次的平均成本。
         5. 邊緣運算 AI：直接在平板裡運算的 AI，預測速度快且每台設備會有自己獨特的思考。
         6. 生成式 AI：就是行長你本人，在雲端超級電腦運算，能根據龐大數據生成像真人一樣的回覆。
+        7. KD 震盪指標 (KD OSC)：追蹤 KD 的開口大小。如果是負數且在高檔，代表「上漲動能枯竭，隨時可能反轉暴跌」；正數則代表動能強勁。
+        8. 量化綜合風險指數 (QRI)：大樹銀行獨創的終極量化模型！結合了長期的「巴菲特指標(GDP基本面)」與短期的「RSI/KD(技術面)」。超過 80 分代表極度危險的泡沫邊緣，低於 40 分則是安全的逢低買點。
 
         學生的問題是：${userText}
     `;
@@ -1958,8 +1997,133 @@ function stopSpeaking() {
     document.getElementById('robot-mouth').classList.remove('speaking');
 }
 
+// ==========================================
+// 🚀 進階風險預警系統計算邏輯 (v9.3)
+// ==========================================
+function updateAdvancedRiskSystems() {
+    if (historyData.length < 14) return; // 資料太少不計算
+
+    // 1. 取得近期股價與總經資料
+    let prices = historyData.map(d => d.stockp);
+    let latestPrice = prices[prices.length - 1];
+    let latestGdp = historyData[historyData.length - 1].gdp;
+    
+    // 2. 計算基礎指標：RSI (14日)
+    let gains = 0, losses = 0;
+    for (let i = prices.length - 14; i < prices.length; i++) {
+        let diff = prices[i] - prices[i-1];
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+    }
+    let rs = (gains / 14) / (Math.abs(losses) / 14 || 1);
+    let currentRSI = 100 - (100 / (1 + rs));
+
+    // 3. 計算基礎指標：KD (簡化版 9日)
+    let recent9Prices = prices.slice(-9);
+    let min9 = Math.min(...recent9Prices);
+    let max9 = Math.max(...recent9Prices);
+    let rsv = max9 === min9 ? 50 : ((latestPrice - min9) / (max9 - min9)) * 100;
+    // 假設前一日 K 與 D 皆為 50 來簡化當前值
+    let currentK = (2/3) * 50 + (1/3) * rsv;
+    let currentD = (2/3) * 50 + (1/3) * currentK;
+
+    // 4. 計算巴菲特指標 (假設你有 totalShares)
+    // 若沒有 totalShares 變數，請自行替換成班級總股數數字
+    let buffettRatio = ((latestPrice * totalShares) / latestGdp) * 100; 
+
+    // --------------------------------------------------------
+    // 【運算 A】動能乖離預警系統 (MDWS)
+    // --------------------------------------------------------
+    let momentumDiff = (currentK - currentD).toFixed(2);
+    let mdwsEl = document.getElementById("kdMomentumValue");
+    let mdwsTextEl = document.getElementById("mdwsText");
+    let mdwsDescEl = document.getElementById("mdwsDesc");
+    
+    document.getElementById("mdwsValue").innerText = momentumDiff > 0 ? `+${momentumDiff}` : momentumDiff;
+    
+    if (currentK > 80 && momentumDiff < 0) {
+        mdwsTextEl.innerText = "🚨 死亡交叉 (高檔反轉)";
+        mdwsTextEl.style.background = "#e74c3c";
+        mdwsTextEl.style.color = "white";
+        mdwsDescEl.innerText = "K值由上往下穿過D值，且處於嚴重超買區，代表上漲動能枯竭，隨時可能暴跌！";
+    } else if (currentK < 20 && momentumDiff > 0) {
+        mdwsTextEl.innerText = "🚀 黃金交叉 (低檔反轉)";
+        mdwsTextEl.style.background = "#2ecc71";
+        mdwsTextEl.style.color = "white";
+        mdwsDescEl.innerText = "K值由下往上穿過D值，且處於超賣區，代表空方力道衰退，迎來絕佳買點！";
+    } else if (momentumDiff > 0) {
+        mdwsTextEl.innerText = "📈 動能偏多 (多頭排列)";
+        mdwsTextEl.style.background = "#f39c12";
+        mdwsTextEl.style.color = "white";
+        mdwsDescEl.innerText = "目前 K值 大於 D值，市場維持上漲動能。";
+    } else {
+        mdwsTextEl.innerText = "📉 動能偏空 (空頭排列)";
+        mdwsTextEl.style.background = "#7f8c8d";
+        mdwsTextEl.style.color = "white";
+        mdwsDescEl.innerText = "目前 K值 小於 D值，市場動能偏弱。";
+    }
+
+    // --------------------------------------------------------
+    // 【運算 B】系統性風險共振燈號 (SRRI)
+    // --------------------------------------------------------
+    // 公式：(巴菲特泡沫程度 40%) + (RSI過熱程度 30%) + (KD過熱程度 30%)
+    let buffettScore = Math.min(Math.max((buffettRatio - 50) / 100 * 100, 0), 100); // 將 50%~150% 映射為 0~100 分
+    let srriScore = (buffettScore * 0.4) + (currentRSI * 0.3) + (currentK * 0.3);
+    srriScore = Math.round(srriScore);
+    
+    document.getElementById("srriScore").innerText = srriScore;
+    document.getElementById("srriBar").style.width = srriScore + "%";
+    
+    let srriTextEl = document.getElementById("srriText");
+    if (srriScore >= 80) {
+        srriTextEl.innerText = "☢️ 極度危險 (崩盤邊緣)";
+        srriTextEl.style.background = "#c0392b";
+    } else if (srriScore >= 65) {
+        srriTextEl.innerText = "🔥 系統過熱 (高度風險)";
+        srriTextEl.style.background = "#e67e22";
+    } else if (srriScore >= 40) {
+        srriTextEl.innerText = "🟢 健康輪動 (風險適中)";
+        srriTextEl.style.background = "#2ecc71";
+    } else {
+        srriTextEl.innerText = "💎 絕佳買點 (低度風險)";
+        srriTextEl.style.background = "#3498db";
+    }
+}
+
+// 記得在畫面一開始載入或更新圖表時呼叫這個函數！
+// 例如加在 window.onload 裡面：
+setTimeout(updateAdvancedRiskSystems, 1000);
 
 
 </script>
+<div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 50px; margin-bottom: 30px; padding-top: 20px; border-top: 1px solid #bdc3c7;">
+    
+    <div style="color: #7f8c8d; font-size: 13px; line-height: 1.8; text-align: left;">
+        <p style="margin: 0;">
+            🚀 <b>大樹經濟分析與 AI 輔助系統</b>：由 <a href="mailto:wang.g.duo@hotmail.com" style="color: #3498db; text-decoration: none; font-weight: bold;">王光多（大樹）</a> 開發與維護。
+        </p>
+        <p style="margin: 0;">
+            📌 <b>特別感謝</b>：本網頁專為搭配 <b>林憲宏、陳惠如</b> 之 <a href="https://ebank.ceag.kh.edu.tw/ebank/" target="_blank" style="color: #3498db; text-decoration: none;">班級點數銀行</a> 所設計。
+        </p>
+        <p style="margin: 0;">
+            💻 程式碼已公開於 <a href="https://github.com/machi1007/Treebank_Announcement" target="_blank" style="color: #3498db; text-decoration: none; font-weight: bold;">GitHub</a>，歡迎來信或交流。
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 12px;">
+            <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank" style="color: #95a5a6; text-decoration: none;">
+                © 2026 王光多（大樹）｜本網頁採用 CC BY-NC-SA 3.0 TW (姓名標示-非商業性-相同方式分享) 授權。
+            </a>
+        </p>
+    </div>
+
+    <div class="badge-base LI-profile-badge" data-locale="zh_TW" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="guangduowang" data-version="v1" style="min-width: 250px;">
+        <a class="badge-base__link LI-simple-link" href="https://tw.linkedin.com/in/guangduowang?trk=profile-badge"></a>
+    </div>
+
+</div>
+
+<script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
+
+
+<script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
 </body>
 </html>
