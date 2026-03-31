@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>真・封神發票抽獎系統 V2.0</title>
+<style>
+    body { margin:0; font-family:"Microsoft JhengHei"; background:#0f0f0f; color:#e0e0e0; text-align:center; line-height: 1.6; }
+    h1 { color: gold; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+    textarea { width:90%; height:120px; background:#222; color:#fff; border:1px solid #444; border-radius:8px; padding:10px; font-size:12px; }
+    .btn-group { margin: 20px; }
+    button { padding:10px 25px; font-size:16px; margin:5px; border:none; border-radius:5px; background:linear-gradient(135deg, #ffd700, #ffa500); color:#000; font-weight:bold; cursor:pointer; transition: 0.3s; }
+    button:hover { transform: scale(1.05); filter: brightness(1.1); }
+    button:disabled { background: #555; cursor: not-allowed; }
+    .status-bar { color: #888; font-size: 14px; margin-bottom: 10px; }
+    .card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); margin:10px auto; padding:15px; width:90%; max-width:500px; border-radius:12px; }
+    .win { border-color: gold; box-shadow: 0 0 15px rgba(255,215,0,0.2); }
+    .win-title { color: gold; font-weight: bold; font-size: 1.2em; }
+    #countdown { font-size:80px; font-weight: bold; color: gold; height: 100px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border-bottom: 1px solid #333; padding: 10px; text-align: center; }
+    th { color: gold; }
+    .highlight { color: #ff4d4d; font-weight: bold; }
+    
+    /* 新增輸入框樣式 */
+    .input-section { text-align: left; padding: 15px; }
+    .input-row { margin-bottom: 8px; display: flex; align-items: center; }
+    .input-row label { width: 120px; color: #ccc; }
+    input[type="text"] { background:#222; color:#fff; border:1px solid #666; border-radius:4px; padding:5px; flex-grow: 1; font-family: monospace; font-size: 14px;}
+    input[type="text"]:focus { outline: none; border-color: gold; }
+</style>
+</head>
+<body>
+
+<div style="max-width:800px;margin:20px auto;background:#1a1a1a;padding:20px;border-radius:15px;text-align:left; border-left: 5px solid gold;">
+    <h2>📜 抽獎規則說明</h2>
+    <small>特別獎(8碼同): 1000萬 | 特獎(8碼同): 200萬 | 頭獎(8碼同): 20萬<br>
+    貳獎:末7碼 | 參獎:末6碼 | 肆獎:末5碼 | 伍獎:末4碼 | 六獎:末3碼 (200點)</small>
+</div>
+
+<h1>🎲 真・封神抽獎系統 🎲</h1>
+<div id="status" class="status-bar">尚未載入資料</div>
+<textarea id="data" placeholder="請直接貼上原始資料內容..."></textarea>
+
+<div class="card input-section">
+    <h3 style="margin-top:0; color:gold;">🎯 自訂開獎號碼 (選填)</h3>
+    <small style="color:#888; display:block; margin-bottom:10px;">* 若留空，點擊「開始對獎」將自動隨機產生號碼。</small>
+    
+    <div class="input-row">
+        <label>特別獎 (8碼):</label>
+        <input type="text" id="manual_s" maxlength="8" placeholder="例如: 12345678">
+    </div>
+    <div class="input-row">
+        <label>特獎 (8碼):</label>
+        <input type="text" id="manual_g" maxlength="8" placeholder="例如: 87654321">
+    </div>
+    <div class="input-row">
+        <label>頭獎 (8碼):</label>
+        <input type="text" id="manual_f" placeholder="多組請用逗號分隔，例如: 11112222,33334444">
+    </div>
+    <div class="input-row">
+        <label>增開六獎 (3碼):</label>
+        <input type="text" id="manual_a" placeholder="多組請用逗號分隔，例如: 123,456">
+    </div>
+</div>
+
+<div class="btn-group">
+    <button onclick="parseData()">📥 載入資料</button>
+    <button id="startBtn" onclick="start()" disabled>🔥 開始對獎</button>
+</div>
+
+<div id="countdown"></div>
+<div id="result"></div>
+<div id="rank"></div>
+
+<script>
+let students = [];
+
+function parseData() {
+    students = [];
+    const rawText = document.getElementById("data").value;
+    const regex = /([\u4e00-\u9fa5]{2,10})[\s\t\n]*([A-Z]{2}\d{8})/g;
+    let match;
+    
+    while ((match = regex.exec(rawText)) !== null) {
+        students.push({
+            name: match[1],
+            invoice: match[2].slice(2), 
+            raw: match[2],
+            win: 0,
+            prizeName: ""
+        });
+    }
+
+    if(students.length > 0) {
+        document.getElementById("status").innerHTML = `✅ 成功載入 <b style="color:white">${students.length}</b> 筆發票資料！`;
+        document.getElementById("startBtn").disabled = false;
+    } else {
+        alert("找不到符合格式的發票資料，請檢查輸入內容！");
+    }
+}
+
+function random8() { return Math.floor(Math.random()*90000000+10000000).toString(); }
+function random3() { return Math.floor(Math.random()*900+100).toString(); }
+
+function check(num, f, a, s, g) {
+    if (s && num === s) return { pts: 10000000, title: "特別獎" };
+    if (g && num === g) return { pts: 2000000, title: "特獎" };
+
+    if (f && f.length > 0) {
+        for (let x of f) {
+            if (!x) continue; // 避開空字串
+            if (num === x) return { pts: 200000, title: "頭獎" };
+            if (num.slice(-7) === x.slice(-7)) return { pts: 40000, title: "貳獎" };
+            if (num.slice(-6) === x.slice(-6)) return { pts: 10000, title: "參獎" };
+            if (num.slice(-5) === x.slice(-5)) return { pts: 4000, title: "肆獎" };
+            if (num.slice(-4) === x.slice(-4)) return { pts: 1000, title: "伍獎" };
+            if (num.slice(-3) === x.slice(-3)) return { pts: 200, title: "六獎" };
+        }
+    }
+    if (a && a.length > 0) {
+        for (let x of a) {
+            if (!x) continue;
+            if (num.slice(-3) === x) return { pts: 200, title: "增開六獎" };
+        }
+    }
+    return { pts: 0, title: "" };
+}
+
+function start() {
+    const btn = document.getElementById("startBtn");
+    btn.disabled = true;
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("rank").innerHTML = "";
+    
+    let n = 3;
+    const cdEl = document.getElementById("countdown");
+    let timer = setInterval(() => {
+        cdEl.innerText = n;
+        n--;
+        if(n < 0) {
+            clearInterval(timer);
+            cdEl.innerText = "";
+            processDrawing();
+            btn.disabled = false;
+        }
+    }, 800);
+}
+
+function processDrawing() {
+    // 取得手動輸入的數值並去除多餘空白
+    let manualS = document.getElementById("manual_s").value.trim();
+    let manualG = document.getElementById("manual_g").value.trim();
+    let manualF = document.getElementById("manual_f").value.trim();
+    let manualA = document.getElementById("manual_a").value.trim();
+
+    // 如果有手動輸入就用手動的，否則自動產生
+    const s = manualS || random8();
+    const g = manualG || random8();
+    // 頭獎與增開六獎因為有多組，所以用逗號切割成陣列
+    const f = manualF ? manualF.split(',').map(x => x.trim()) : [random8(), random8(), random8()];
+    const a = manualA ? manualA.split(',').map(x => x.trim()) : [random3(), random3()];
+
+    let winnersCount = 0;
+    let html = `<div class="card">
+        <b style="font-size:1.2em">🎯 本期開獎號碼</b><br>
+        特別獎：<span class="highlight">${s}</span><br>
+        特獎：<span class="highlight">${g}</span><br>
+        頭獎：${f.join(" / ")}<br>
+        增開六獎：${a.join(" / ")}
+    </div>`;
+
+    // 進行對獎
+    students.forEach(st => {
+        let res = check(st.invoice, f, a, s, g);
+        st.win = res.pts;
+        st.prizeName = res.title;
+        if(st.win > 0) {
+            winnersCount++;
+            html += `<div class="card win">
+                🎉 <span class="win-title">${st.name}</span> 
+                獲得 <span class="highlight">${st.win}</span> 點！<br>
+                <small>${st.prizeName} (${st.raw})</small>
+            </div>`;
+        }
+    });
+
+    // 🎁 無人中獎的回饋系統
+    if(winnersCount === 0) {
+        let event = Math.floor(Math.random() * 4);
+        let uniqueNames = [...new Set(students.map(s => s.name))];
+
+        if(event === 0) {
+            html += `<div class="card">😭 慘爆！無人中獎。安慰獎：全班+100點</div>`;
+            students.forEach(st => st.win = 100);
+        }
+        else if(event === 1) {
+            html += `<div class="card">🎁 安慰獎：隨機抽出 3 位名額 (+100點)</div>`;
+            let pool = [...uniqueNames];
+            for(let i=0; i<3 && pool.length>0; i++){
+                let idx = Math.floor(Math.random()*pool.length);
+                let luckyName = pool.splice(idx, 1)[0];
+                html += `<div class="card win">👤 ${luckyName} 獲得安慰獎 100點</div>`;
+                let target = students.find(s => s.name === luckyName);
+                if(target) target.win = 100;
+            }
+        }
+        else {
+            html += `<div class="card">😈 今天大家都沒帶運氣出門...</div>`;
+        }
+    }
+
+    document.getElementById("result").innerHTML = html;
+    renderRank();
+}
+
+function renderRank() {
+    let totalMap = {};
+    students.forEach(s => {
+        if(!totalMap[s.name]) totalMap[s.name] = { score: 0, count: 0 };
+        if(s.win > 0) {
+            totalMap[s.name].score += s.win;
+            totalMap[s.name].count++;
+        }
+    });
+
+    let sorted = Object.entries(totalMap)
+        .map(([name, data]) => ({ name, ...data }))
+        .filter(s => s.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+    if(sorted.length > 0) {
+        let rankHtml = `<div class="card">
+            <h3>🏆 幸運排行榜</h3>
+            <table>
+                <thead>
+                    <tr><th>排名</th><th>姓名</th><th>總點數</th><th>中獎張數</th></tr>
+                </thead>
+                <tbody>`;
+        sorted.forEach((s, i) => {
+            rankHtml += `<tr>
+                <td>${i+1}</td>
+                <td><b>${s.name}</b></td>
+                <td class="highlight">${s.score}</td>
+                <td>${s.count} 張</td>
+            </tr>`;
+        });
+        rankHtml += `</tbody></table></div>`;
+        document.getElementById("rank").innerHTML = rankHtml;
+    }
+}
+</script>
+</body>
+</html>
