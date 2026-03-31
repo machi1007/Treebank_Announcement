@@ -22,6 +22,31 @@ h1{
   text-align:center;
   margin-bottom:30px;
 }
+/* 智慧貼上區樣式 */
+.smart-paste-box {
+  background: #fff3e0;
+  border: 2px dashed #f39c12;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+.smart-paste-box label {
+  font-weight: bold;
+  color: #d35400;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.smart-paste-box textarea {
+  width: 100%;
+  height: 80px;
+  font-family: inherit;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  resize: vertical;
+}
 .controlGrid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -37,12 +62,14 @@ h1{
   font-size:14px;
   display:block;
   margin-bottom:4px;
+  font-weight: bold;
 }
 .controlBox input{
   width:100%;
   padding:6px;
   border-radius:6px;
   border:1px solid #ccc;
+  transition: background-color 0.4s;
 }
 button{
   padding:10px 18px;
@@ -95,7 +122,7 @@ th,td{
 th{
   background:#ecf0f1;
 }
-textarea{
+#output{
   width:100%;
   height:200px;
   margin-top:20px;
@@ -111,6 +138,11 @@ textarea{
 <div class="container">
 <h1>🏦 大樹銀行超級經濟控制台</h1>
 
+<div class="smart-paste-box">
+  <label>📥 終極智慧貼上區：可直接貼上「全班原始數據 (支援黏著亂碼)」或「分析結果」，自動帶入下方！</label>
+  <textarea id="quickPaste" placeholder="請將全班表格資料(例如: 1劉品程03002580 55834件 / 322880) 整坨貼上來..." oninput="autoFillData()"></textarea>
+</div>
+
 <div class="controlGrid">
 
 <div class="controlBox">
@@ -120,12 +152,12 @@ textarea{
 
 <div class="controlBox">
 <label>銀行資產 currentAsset</label>
-<input type="number" id="asset">
+<input type="number" id="asset" step="0.1">
 </div>
 
 <div class="controlBox">
 <label>商品價格 currentPrice</label>
-<input type="number" id="price">
+<input type="number" id="price" step="0.01">
 </div>
 
 <div class="controlBox">
@@ -155,12 +187,12 @@ textarea{
 
 <div class="controlBox">
 <label>基準價格 basePrice</label>
-<input type="number" id="basePrice" value="100">
+<input type="number" id="basePrice" value="10">
 </div>
 
 <div class="controlBox">
   <label>吉尼係數 gini (選填)</label>
-  <input type="number" id="gini" step="0.01" placeholder="例如: 0.32">
+  <input type="number" id="gini" step="0.001" placeholder="例如: 0.320">
 </div>
 
 </div>
@@ -227,6 +259,119 @@ textarea{
 let historyData=[]
 let lastData=null
 
+function toNum(str){
+  return parseInt(str.replace(/,/g,"")) || 0;
+}
+
+function calcGini(arr){
+  const n = arr.length;
+  if(n === 0) return 0;
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const total = sorted.reduce((a,b)=>a+b,0);
+  if(total === 0) return 0;
+  let weightedSum = 0;
+  for(let i=0;i<n;i++){ weightedSum += (i+1) * sorted[i]; }
+  return (2 * weightedSum) / (n * total) - (n + 1) / n;
+}
+
+function flashHighlight(id) {
+  let el = document.getElementById(id);
+  el.style.backgroundColor = "#f1c40f"; 
+  setTimeout(() => { el.style.backgroundColor = "#ffffff"; }, 600);
+}
+
+// 🌟 修正：改成精準抓取「總餘額」作為貨幣供給基準
+function autoFillData() {
+  let text = document.getElementById("quickPaste").value;
+  if (!text.trim()) return;
+
+  // 1. 嘗試解析是否為「分析結果」格式 (改抓 平均餘額)
+  let matchAsset = text.match(/平均餘額:\s*([\d.]+)/);
+  let matchPrice = text.match(/單價\s*\(CPI\s*基準\):\s*([\d.]+)/) || text.match(/CPI[^\d]*([\d.]+)/) || text.match(/整體平均單價[^\d]*([\d.]+)/);
+  let matchGini = text.match(/吉尼係數:\s*([\d.]+)/);
+
+  if (matchAsset || matchPrice || matchGini) {
+    if (matchAsset && matchAsset[1]) { document.getElementById("asset").value = matchAsset[1]; flashHighlight("asset"); }
+    if (matchPrice && matchPrice[1]) { document.getElementById("price").value = matchPrice[1]; flashHighlight("price"); }
+    if (matchGini && matchGini[1]) { document.getElementById("gini").value = matchGini[1]; flashHighlight("gini"); }
+    return; 
+  }
+
+  // 2. 如果不是報告，嘗試解析「全班原始數據(亂碼黏著)」格式
+  const lines = text.split("\n");
+  let totalConsumption=0, totalItems=0, totalMoney=0; // 變數改成 totalMoney(總餘額)
+  let balances = [];
+  let validCount = 0;
+
+  lines.forEach(line => {
+    line = line.replace(/\s+/g, ' ').trim();
+    if(!line) return;
+    if(line.includes("座號") || line.includes("姓名") || line.includes("總資產") || line.includes("平均消費")) return;
+
+    let balance=0, items=0, consume=0, asset=0;
+    let parsedSuccessfully = false;
+
+    let gluedMatch = line.match(/^(\d+)([\u4e00-\u9fa5a-zA-Z]+)\s*(\d+)\s+(\d+)件\s*\/\s*([\d,]+)$/);
+    if(gluedMatch) {
+      let b_and_i_str = gluedMatch[4];
+      let c_and_a_str = gluedMatch[5].replace(/,/g, '');
+      let found = false;
+      for (let b_len = 1; b_len < b_and_i_str.length; b_len++) {
+        let B = parseInt(b_and_i_str.substring(0, b_len), 10);
+        let I = parseInt(b_and_i_str.substring(b_len), 10);
+        for (let c_len = 1; c_len < c_and_a_str.length; c_len++) {
+          let C = parseInt(c_and_a_str.substring(0, c_len), 10);
+          let A = parseInt(c_and_a_str.substring(c_len), 10);
+          if (B + C === A) {
+            balance = B; items = I; consume = C; asset = A;
+            found = true; break;
+          }
+        }
+        if (found) break;
+      }
+      if (found) parsedSuccessfully = true;
+    }
+
+    if (!parsedSuccessfully) {
+      let p = line.split(/\s+/);
+      if(p.length >= 7) {
+        balance = toNum(p[6]); // 第7個欄位是總餘額
+        const matches = line.match(/(\d+)件\s*\/\s*([\d,]+)\s+([\d,]+)$/);
+        if(matches){
+          items = parseInt(matches[1]); consume = toNum(matches[2]); asset = toNum(matches[3]);
+          parsedSuccessfully = true;
+        }
+      }
+    }
+
+    if (parsedSuccessfully) {
+        totalConsumption += consume;
+        totalItems += items;
+        totalMoney += balance; // 累加總餘額而非總資產
+        balances.push(balance);
+        validCount++;
+    }
+  });
+
+  // 如果成功解析出原始數據，填入欄位
+  if (validCount > 0) {
+      let avgMoney = (totalMoney / validCount).toFixed(1); // 算出平均餘額
+      let avgPrice = totalItems > 0 ? (totalConsumption / totalItems).toFixed(2) : "0";
+      let giniValue = calcGini(balances).toFixed(3);
+
+      document.getElementById("asset").value = avgMoney; // 填入 asset (代表銀行貨幣供給基準)
+      document.getElementById("price").value = avgPrice;
+      document.getElementById("gini").value = giniValue;
+      
+      flashHighlight("asset");
+      flashHighlight("price");
+      flashHighlight("gini");
+      
+      // 顯示文字改為「平均餘額」
+      document.getElementById("quickPaste").value = `✅ 已自動解碼 ${validCount} 筆資料！\n平均餘額(銀行資產)：${avgMoney}\n單價(CPI基準)：${avgPrice}\n吉尼係數：${giniValue}`;
+  }
+}
+
 function calculate(){
   let asset = Number(document.getElementById("asset").value)
   let price = Number(document.getElementById("price").value)
@@ -245,13 +390,8 @@ function calculate(){
   let money = asset*students
   let cpi = ((price-basePrice)/basePrice)*100
   
-  // 雙軌計算
-  // 修正 1：統一基準點。基準 GDP 也應該反映 adjustRatio 的結構，這樣比較才有意義
   let baseGDP = (baseSalary * adjustRatio) * students + baseAsset * students * 0.35;
-  
   let nominalGdp = Math.round(salary * students + money * 0.35);
-  
-  // 修正 2：實質 GDP 應該透過「商品物價變化 (CPI)」來還原，而不是貨幣發行量
   let realGdp = Math.round(nominalGdp / (1 + (cpi / 100)));
   
   let nominalGdpGrowth = ((nominalGdp - baseGDP) / baseGDP * 100);
@@ -264,7 +404,6 @@ function calculate(){
   document.getElementById("gdpReal").innerText = realGdp
   document.getElementById("gdpGrowthReal").innerText = realGdpGrowth.toFixed(1)+"%"
 
-  // ⚠️ 寫入 historyData 仍保留名目數字，確保舊資料格式不會被破壞
   lastData={
     inflation:inflation.toFixed(2),
     salary:salary,
@@ -274,7 +413,7 @@ function calculate(){
     gdpGrowth:nominalGdpGrowth.toFixed(1),
     stock:stock,
     gini:gini,
-    realGrowthPreview: realGdpGrowth.toFixed(1) // 僅供畫面預覽使用
+    realGrowthPreview: realGdpGrowth.toFixed(1)
   }
 }
 
