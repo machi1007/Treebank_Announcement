@@ -21,7 +21,7 @@
     th { color: gold; }
     .highlight { color: #ff4d4d; font-weight: bold; }
     
-    /* 新增輸入框樣式 */
+    /* 輸入框樣式 */
     .input-section { text-align: left; padding: 15px; }
     .input-row { margin-bottom: 8px; display: flex; align-items: center; }
     .input-row label { width: 120px; color: #ccc; }
@@ -35,6 +35,16 @@
     <h2>📜 抽獎規則說明</h2>
     <small>特別獎(8碼同): 1000萬 | 特獎(8碼同): 200萬 | 頭獎(8碼同): 20萬<br>
     貳獎:末7碼 | 參獎:末6碼 | 肆獎:末5碼 | 伍獎:末4碼 | 六獎:末3碼 (200點)</small>
+    
+    <hr style="border-top: 1px dashed #444; margin: 15px 0;">
+    
+    <h3 style="color: #ff9900; margin-top: 0; font-size: 1.1em;">🎁 隱藏機制：無人中獎的安慰獎（觸發條件：全班槓龜）</h3>
+    <small style="color: #bbb;">
+        若當期無任何一人中獎，系統將自動啟動命運轉盤：<br>
+        • <b style="color: #4CAF50;">25% 機率</b>：全班普天同慶，每人皆獲得 100 點！<br>
+        • <b style="color: #2196F3;">25% 機率</b>：隨機抽出 3 位幸運兒，各獲得 100 點！<br>
+        • <b style="color: #F44336;">50% 機率</b>：銘謝惠顧，今天大家都沒帶運氣出門... 😈
+    </small>
 </div>
 
 <h1>🎲 真・封神抽獎系統 🎲</h1>
@@ -108,7 +118,7 @@ function check(num, f, a, s, g) {
 
     if (f && f.length > 0) {
         for (let x of f) {
-            if (!x) continue; // 避開空字串
+            if (!x) continue;
             if (num === x) return { pts: 200000, title: "頭獎" };
             if (num.slice(-7) === x.slice(-7)) return { pts: 40000, title: "貳獎" };
             if (num.slice(-6) === x.slice(-6)) return { pts: 10000, title: "參獎" };
@@ -147,16 +157,13 @@ function start() {
 }
 
 function processDrawing() {
-    // 取得手動輸入的數值並去除多餘空白
     let manualS = document.getElementById("manual_s").value.trim();
     let manualG = document.getElementById("manual_g").value.trim();
     let manualF = document.getElementById("manual_f").value.trim();
     let manualA = document.getElementById("manual_a").value.trim();
 
-    // 如果有手動輸入就用手動的，否則自動產生
     const s = manualS || random8();
     const g = manualG || random8();
-    // 頭獎與增開六獎因為有多組，所以用逗號切割成陣列
     const f = manualF ? manualF.split(',').map(x => x.trim()) : [random8(), random8(), random8()];
     const a = manualA ? manualA.split(',').map(x => x.trim()) : [random3(), random3()];
 
@@ -169,7 +176,6 @@ function processDrawing() {
         增開六獎：${a.join(" / ")}
     </div>`;
 
-    // 進行對獎
     students.forEach(st => {
         let res = check(st.invoice, f, a, s, g);
         st.win = res.pts;
@@ -184,7 +190,6 @@ function processDrawing() {
         }
     });
 
-    // 🎁 無人中獎的回饋系統
     if(winnersCount === 0) {
         let event = Math.floor(Math.random() * 4);
         let uniqueNames = [...new Set(students.map(s => s.name))];
