@@ -8,37 +8,42 @@
 
 <style>
 body { font-family:"Microsoft JhengHei"; padding:20px; background:#f5f5f5;}
-textarea { width:100%; height:260px; font-family:monospace; margin-bottom:10px;}
-button { padding:10px 20px; font-size:16px; margin-bottom:10px;}
-.result { margin-top:20px; font-size:16px; font-weight:bold; white-space:pre-line;}
-table { border-collapse:collapse; width:100%; margin-top:10px;}
-table, th, td { border:1px solid #999; }
-th, td { padding:6px 10px; text-align:center; }
-canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
+textarea { width:100%; height:260px; font-family:monospace; margin-bottom:10px; border-radius: 8px; padding: 10px; box-sizing: border-box;}
+button { padding:10px 20px; font-size:16px; margin-bottom:10px; background:#3498db; color:white; border:none; border-radius:6px; cursor:pointer;}
+button:hover { background:#2980b9;}
+.result { margin-top:20px; font-size:16px; font-weight:bold; white-space:pre-line; background: #fff3e0; padding: 15px; border-radius: 8px; border: 2px dashed #f39c12; line-height: 1.6;}
+table { border-collapse:collapse; width:100%; margin-top:15px; background: white;}
+table, th, td { border:1px solid #bdc3c7; }
+th, td { padding:8px 10px; text-align:center; }
+th { background: #ecf0f1; color: #2c3e50; }
+.highlight-col { color: #c0392b; font-weight: bold; background: #fdfefe; }
+canvas { margin-top:20px; background:white; padding:10px; border-radius:10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
 </style>
 </head>
 
 <body>
 
-<a href="index3.html" style="background:#e74c3c;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;">
+<a href="index3.html" style="background:#e74c3c;color:white;padding:10px 15px;border-radius:5px;text-decoration:none; font-weight:bold;">
 🏠 回到經濟控制台
 </a>
 
-<h2>貨幣與消費計算器</h2>
+<h2>📊 貨幣與消費計算器</h2>
 
 <p>每行格式：座號 姓名 存摺 定存 股票 網拍(競標中) 總餘額 網拍(已得標，例如 11件 / 11) 總資產</p>
 
-<textarea id="dataInput"></textarea><br>
-<button onclick="calculateTotals()">計算經濟數據</button>
+<textarea id="dataInput" placeholder="請在此貼上全班資料..."></textarea><br>
+<button onclick="calculateTotals()">⚙ 計算經濟數據與平均消費</button>
 
-<div class="result" id="totals"></div>
+<div class="result" id="totals">請貼上數據並點擊計算...</div>
 
 <table id="dataTable">
 <thead>
 <tr>
 <th>座號</th><th>姓名</th><th>存摺</th><th>定存</th>
 <th>股票</th><th>競標中</th><th>總餘額</th>
-<th>已得標</th><th>總資產</th>
+<th>已得標 (件數 / 花費)</th>
+<th style="background:#f1c40f; color:#333;">個人平均單價</th>
+<th>總資產</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -50,9 +55,7 @@ canvas { margin-top:20px; background:white; padding:10px; border-radius:10px;}
 <canvas id="chart4"></canvas>
 <canvas id="chart5"></canvas>
 <canvas id="chart6"></canvas>
-<canvas id="chart7"></canvas> <!-- ⭐洛倫茲曲線 -->
-
-<script>
+<canvas id="chart7"></canvas> <script>
 let charts=[];
 
 function toNum(str){
@@ -109,8 +112,23 @@ function calculateTotals(){
     let p=line.trim().split(/\s+/);
     if(p.length<7) return;
 
-    const seat=p[0];
-    const name=p[1];
+    // 處理姓名可能黏在一起的狀況 (例如: 1劉品程 -> 座號1, 姓名劉品程)
+    let seat = p[0];
+    let name = p[1];
+    
+    // 如果複製下來的資料座號和姓名黏在一起的簡單容錯處理
+    if(p[0].match(/^\d+$/) && p[1]) {
+        seat = p[0];
+        name = p[1];
+    } else {
+        let match = p[0].match(/^(\d+)(.+)$/);
+        if(match) {
+            seat = match[1];
+            name = match[2];
+            p.splice(1, 0, name); // 補回陣列方便後面取值
+        }
+    }
+
     const saving=toNum(p[2]);
     const fixed=toNum(p[3]);
     const stock=toNum(p[4]);
@@ -120,11 +138,17 @@ function calculateTotals(){
     const matches=line.match(/(\d+)件\s*\/\s*([\d,]+)\s+([\d,]+)$/);
 
     let items=0,consume=0,asset=0;
+    let avgUnitPrice = "0.00";
 
     if(matches){
       items=parseInt(matches[1]);
       consume=toNum(matches[2]);
       asset=toNum(matches[3]);
+      
+      // 計算個人平均單價
+      if(items > 0) {
+        avgUnitPrice = (consume / items).toFixed(2);
+      }
     }
 
     totalMoney+=balance;
@@ -146,6 +170,7 @@ function calculateTotals(){
     <td>${stock}</td><td>${pending}</td>
     <td>${balance}</td>
     <td>${items}件 / ${consume}</td>
+    <td class="highlight-col">${avgUnitPrice}</td>
     <td>${asset}</td>
     </tr>`;
   });
@@ -155,7 +180,9 @@ function calculateTotals(){
   const avgMoney=(totalMoney/n).toFixed(1);
   const avgAsset=(totalAssets/n).toFixed(1);
   const avgConsume=(totalConsumption/n).toFixed(1);
-  const avgPrice= totalItems? (totalConsumption/totalItems).toFixed(2):0;
+  
+  // 計算整體加權平均單價 (CPI 基準)
+  const avgPrice= totalItems > 0 ? (totalConsumption/totalItems).toFixed(2) : 0;
 
   // 排序
   const assetSorted=[...players].sort((a,b)=>b.asset-a.asset);
@@ -176,10 +203,10 @@ function calculateTotals(){
   const topBalances=balanceSorted.slice(0,top20).reduce((s,p)=>s+p.balance,0);
   const concentration=((topBalances/totalMoney)*100).toFixed(1);
 
-  document.getElementById("totals").innerText=`
+  document.getElementById("totals").innerHTML=`
 貨幣供給量: ${totalMoney} ｜ 平均餘額: ${avgMoney}
-消費總額: ${totalConsumption} ｜ 平均消費: ${avgConsume}
-CPI: ${avgPrice}
+消費總額: ${totalConsumption} ｜ 全班總得標件數: ${totalItems} 件 ｜ 每人平均消費額: ${avgConsume}
+<span style="color:#d35400; font-size:1.2em;">🌟 <strong>整體平均單價 (CPI 基準): ${avgPrice}</strong></span>
 
 總資產: ${totalAssets} ｜ 平均資產: ${avgAsset}
 
