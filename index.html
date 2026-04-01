@@ -1108,7 +1108,7 @@ new Chart(document.getElementById("inflationChart"),{
     type:"line", data:{labels:labels,datasets:[{label:"通膨指數",data:inflationHistory,fill:false}]}, options: commonZoomOptions 
 })
 
-let realSalaryHistory = historyData.map(h => (h.salary / h.inflation).toFixed(1));
+let realSalaryHistory = historyData.map(h => (h.salary / (1 + (h.cpi / 100))).toFixed(1));
 new Chart(document.getElementById("salaryChart"),{
     type:"line",
     data:{
