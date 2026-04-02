@@ -523,16 +523,25 @@ nav.system-nav a:hover {
                       <div style="font-size: 12px; color: #7f8c8d; margin-top: 2px;">(💡 填寫想參考的近幾天。填 0 代表參考全部歷史，最低需 3 天)</div>
                   </div>
           
-          <div>
-              <b>🎭 加上市場情緒干預：</b><br>
-              <select id="aiSentiment" style="width: 100%; padding: 4px; border-radius: 4px; margin-top: 3px; border: 1px solid #ccc;">
-                  <option value="0.05">🤑 籌碼超買 / 極度樂觀 (+5%)</option>
-                  <option value="0.02">😊 籌碼淨買 / 偏向樂觀 (+2%)</option>
-                  <option value="0" selected>😐 中立 / 純看 AI 數據 (+0%)</option>
-                  <option value="-0.02">😨 籌碼淨賣 / 偏向悲觀 (-2%)</option>
-                  <option value="-0.05">🥶 籌碼超賣 / 極度悲觀 (-5%)</option>
-              </select>
-          </div>
+<div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #e0e0e0; margin-bottom: 10px;">
+    <b>📊 設定基本面 (大環境經濟狀況)：</b><br>
+    <select id="aiFundamental" style="width: 100%; padding: 4px; border-radius: 4px; margin-top: 3px; border: 1px solid #ccc; margin-bottom: 10px;">
+        <option value="0.05">🚀 經濟繁榮 / 企業獲利大增 (+5%)</option>
+        <option value="0.02">📈 溫和成長 / 景氣穩定 (+2%)</option>
+        <option value="0" selected>⚖️ 停滯 / 無明顯變化 (+0%)</option>
+        <option value="-0.02">📉 景氣放緩 / 企業獲利衰退 (-2%)</option>
+        <option value="-0.05">💥 經濟衰退 / 百業蕭條 (-5%)</option>
+    </select>
+
+    <b>🎭 設定籌碼面 (市場投資情緒)：</b><br>
+    <select id="aiSentiment" style="width: 100%; padding: 4px; border-radius: 4px; margin-top: 3px; border: 1px solid #ccc;">
+        <option value="0.05">🤑 籌碼超買 / 極度樂觀 (+5%)</option>
+        <option value="0.02">😊 籌碼淨買 / 偏向樂觀 (+2%)</option>
+        <option value="0" selected>😐 中立 / 純看 AI 數據 (+0%)</option>
+        <option value="-0.02">😨 籌碼淨賣 / 偏向悲觀 (-2%)</option>
+        <option value="-0.05">🥶 籌碼超賣 / 極度悲觀 (-5%)</option>
+    </select>
+</div>
           <button onclick="runCustomAIPrediction()" style="width: 100%; margin-top: 10px; background: #F5E8C7; color: white; border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s;">
               🚀 套用參數並重新預測
           </button>
@@ -1578,50 +1587,53 @@ function clearAIPrediction() {
 /* ======================
 🔥 互動式 AI 邊緣運算實驗室
 ====================== */
+/* ======================
+🔥 互動式 AI 邊緣運算實驗室 (純手動雙指標：基本面 + 籌碼面)
+====================== */
 function runCustomAIPrediction() {
     let btn = document.querySelector("button[onclick='runCustomAIPrediction()']");
-    btn.innerText = "🧠 類神經網路運算中...";
-    btn.style.background = "#d35400";
-    document.getElementById("aiPrediction").innerText = "運算中...";
+    if(btn) {
+        btn.innerText = "🧠 類神經網路運算中...";
+        btn.style.background = "#d35400";
+    }
+    let predEl = document.getElementById("aiPrediction");
+    if(predEl) predEl.innerText = "運算中...";
     
-    // 取得學生選擇的參數
+    // 1. 取得學生【手動選擇】的兩個參數 (再也沒有系統偷偷干預了！)
     let lookbackVal = parseInt(document.getElementById("aiLookback").value);
-    let sentimentVal = parseFloat(document.getElementById("aiSentiment").value);
+    let fundamentalVal = parseFloat(document.getElementById("aiFundamental").value) || 0;
+    let sentimentVal = parseFloat(document.getElementById("aiSentiment").value) || 0;
     
-    // 稍微延遲讓畫面有更新運算中的感覺
+    // 把學生設定的基本面跟籌碼面加總起來
+    let totalStudentFactor = fundamentalVal + sentimentVal;
+
     setTimeout(() => {
         let latestPrice = stockpHistory[stockpHistory.length - 1];
         
-        // 1. 決定 AI 要吃多少天的歷史資料
+        // --- 【A. 技術面：讓 AI 算歷史規律】 ---
         let rawData = [];
-        
-        // 如果輸入 0，或是輸入的天數大於總歷史天數，就直接吃全部資料
         if (isNaN(lookbackVal) || lookbackVal === 0 || lookbackVal >= historyData.length) {
             rawData = historyData.map(h => h.stockp);
-            document.getElementById("aiLookback").value = 0; // 順便把輸入框自動修正為 0
+            if(document.getElementById("aiLookback")) document.getElementById("aiLookback").value = 0;
         } else {
-            // LSTM 神經網路至少需要 3 筆資料才能找出規律
             if (lookbackVal < 3) {
                 lookbackVal = 3; 
-                document.getElementById("aiLookback").value = 3; // 強制修正回 3
+                if(document.getElementById("aiLookback")) document.getElementById("aiLookback").value = 3;
             }
             rawData = historyData.slice(-lookbackVal).map(h => h.stockp);
         }
 
-        // 2. 資料正規化 (縮放到 0~1 給神經網路)
         let trainingData = rawData.map(price => price / 50);
-        
-        // 3. 訓練模型
         let net = new brain.recurrent.LSTMTimeStep({ inputSize: 1, hiddenLayers: [10], outputSize: 1 });
-        net.train([trainingData], { iterations: 1200, errorThresh: 0.015 }); // 跑 1200 次迭代
+        net.train([trainingData], { iterations: 1200, errorThresh: 0.015 }); 
         
-        // 4. 取得 AI 基礎預測並還原真實股價
         let basePredictedPrice = net.run(trainingData) * 50;
         
-        // 5. 加入學生主觀設定的「市場情緒/籌碼」加權
-        let adjustedPrice = basePredictedPrice * (1 + sentimentVal);
+        // --- 【B. 總合加權公式 (100% 依賴學生設定)】 ---
+        // 最終預測 = AI純技術預測 * (1 + 基本面加權 + 籌碼面加權)
+        let adjustedPrice = basePredictedPrice * (1 + totalStudentFactor);
         
-        // 6. 受到大樹銀行 ±10% 漲跌停法規限制
+        // 受到大樹銀行 ±10% 漲跌停法規限制
         let maxLimit = latestPrice * 1.10;
         let minLimit = latestPrice * 0.90;
         let finalPredictedPrice = adjustedPrice;
@@ -1631,36 +1643,45 @@ function runCustomAIPrediction() {
         
         finalPredictedPrice = finalPredictedPrice.toFixed(1);
         
-        // 7. 更新畫面數值
-        document.getElementById("aiPrediction").innerText = finalPredictedPrice + " 點";
-        btn.innerText = "🚀 套用參數並重新預測";
-        btn.style.background = "#e67e22";
-        
-        // 8. 畫到折線圖上
-        let aiChartData = new Array(stockpHistory.length).fill(null);
-        aiChartData[stockpHistory.length - 1] = latestPrice; // 連接點
-        aiChartData.push(finalPredictedPrice); 
-        
-        // 移除舊的預測線 (如果有的話)
-        stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(ds => ds.label !== "🤖 學生設定 AI 預測");
-        
-        // 確保 X 軸有下一期的位置
-        if(stockChartInstance.data.labels[stockChartInstance.data.labels.length - 1] !== "AI預測") {
-            stockChartInstance.data.labels = [...labels, "AI預測"];
+        // --- 【C. 更新畫面】 ---
+        if(predEl) {
+            let factorText = (totalStudentFactor * 100).toFixed(1) + "%";
+            let factorColor = totalStudentFactor >= 0 ? "#2ecc71" : "#e74c3c";
+            // 讓畫面上顯示出學生自己調整的總干預幅度
+            predEl.innerHTML = `${finalPredictedPrice} 點 <br><span style="font-size: 13px; color: #7f8c8d; font-weight: normal;">(手動設定影響總和: <span style="color:${factorColor}">${totalStudentFactor > 0 ? '+' : ''}${factorText}</span>)</span>`;
         }
         
-        // 新增自訂參數的預測線
-        stockChartInstance.data.datasets.push({
-            label: "🤖 學生設定 AI 預測", 
-            data: aiChartData, 
-            borderColor: "#e67e22", 
-            borderWidth: 3, 
-            borderDash: [5, 5], 
-            pointBackgroundColor: "#e74c3c", 
-            pointRadius: 6, 
-            fill: false
-        });
-        stockChartInstance.update();
+        if(btn) {
+            btn.innerText = "🚀 套用參數並重新預測";
+            btn.style.background = "#e67e22";
+        }
+        
+        // --- 【D. 畫到折線圖上】 ---
+        if (typeof stockChartInstance !== 'undefined') {
+            let aiChartData = new Array(stockpHistory.length).fill(null);
+            aiChartData[stockpHistory.length - 1] = latestPrice; 
+            aiChartData.push(finalPredictedPrice); 
+            
+            stockChartInstance.data.datasets = stockChartInstance.data.datasets.filter(ds => ds.label !== "🤖 學生設定 AI 預測");
+            
+            if(stockChartInstance.data.labels[stockChartInstance.data.labels.length - 1] !== "AI預測") {
+                let newLabels = [...stockChartInstance.data.labels];
+                newLabels.push("AI預測");
+                stockChartInstance.data.labels = newLabels;
+            }
+            
+            stockChartInstance.data.datasets.push({
+                label: "🤖 學生設定 AI 預測", 
+                data: aiChartData, 
+                borderColor: "#e67e22", 
+                borderWidth: 3, 
+                borderDash: [5, 5], 
+                pointBackgroundColor: "#e74c3c", 
+                pointRadius: 6, 
+                fill: false
+            });
+            stockChartInstance.update();
+        }
         
     }, 150);
 }
