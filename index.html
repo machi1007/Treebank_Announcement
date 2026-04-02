@@ -357,7 +357,8 @@ nav.system-nav a:hover {
 
 <div class="notice">
 📢 <b>大樹點數銀行公告</b>
-<p>優惠定期存款活動：<b>定存7%/月</b></p>
+<p>💵3月優惠定存利率：<b>5%</b> /月（2026.03.01-2026.03.26）</p>
+<p>💵4月優惠定存利率：<b>7%</b> /月（2026.03.27-2026.04.30）</p>
 <b>【當前經濟狀況】</b>：
 <b id="announcement"></b>
 </div>
@@ -379,6 +380,7 @@ nav.system-nav a:hover {
                     <li><b>動能預警系統：</b>新增「KD 震盪指標 (KD OSC)」，提前抓出股價反轉時機。</li>
                     <li><b>綜合風險模型：</b>新增「量化綜合風險指數 (QRI)」，一秒看懂當前風險分數！</li>
                     <li><b>優化各子系統：</b>優化與修復BUG。</li>
+                    <li><b>優化指數計算：</b>優化幸福指數，加入經濟成長。</li>
                 </ul>
             </p>
             <p><b>v9.2</b>：
@@ -615,7 +617,7 @@ nav.system-nav a:hover {
 
         <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center;">
             <h3 style="margin-top:0; color:#2c3e50;">🌈 經濟幸福指數</h3>
-            <p style="color: #7f8c8d; font-size: 14px;">( 滿分 100。扣除通膨壓力與貧富差距 )</p>
+            <p style="color: #7f8c8d; font-size: 14px;">( 基礎 100 ➖ 通膨壓力 ➖ 貧富差距 ➕ <span style="color: #e74c3c; font-weight: bold;">經濟成長紅利</span> )</p>
             <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px;">
                 <div style="font-size: 50px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);" id="happinessBigNumber">--</div>
                 <div style="font-size: 22px; font-weight: bold; background: #eee; padding: 8px 16px; border-radius: 30px;" id="happinessBigText">--</div>
@@ -1386,32 +1388,74 @@ new Chart(document.getElementById("fgGaugeChart"), {
 });
 
 /* ======================
-🌈 經濟幸福指數
+🌈 經濟幸福指數 (完美相容版：加入實質經濟成長紅利)
 ====================== */
+
+// 1. 痛苦扣分項 (不變)
 let inflationPenalty = inflation > 1 ? (inflation - 1) * 100 : 0; 
 let giniPenalty = currentGini !== "-" ? currentGini * 100 : 0;
-let happinessIndex = Math.round(100 - (inflationPenalty + giniPenalty));
-if (happinessIndex < 0) happinessIndex = 0; if (happinessIndex > 100) happinessIndex = 100;
 
+// 2. 幸福加分項 (套用您系統真實的變數：realGdpGrowthVal)
+let growthBonus = 0;
+if (typeof realGdpGrowthVal !== "undefined" && !isNaN(realGdpGrowthVal)) {
+    // 因為您的 realGdpGrowthVal 本身就是百分比 (例如 2.5 就代表 2.5%)
+    // 所以直接轉換為數字即可，正成長加分，負成長扣分
+    growthBonus = parseFloat(realGdpGrowthVal); 
+}
+
+// 3. 綜合計算 (基礎 100 - 通膨痛苦 - 貧富差距 + 經濟成長紅利)
+let happinessIndex = Math.round(100 - inflationPenalty - giniPenalty + growthBonus);
+
+// 4. 極值收斂防呆 (確保介於 0~100，且萬一算出來不是數字預設給 50)
+if (isNaN(happinessIndex)) happinessIndex = 50; 
+if (happinessIndex < 0) happinessIndex = 0; 
+if (happinessIndex > 100) happinessIndex = 100;
+
+// 5. 燈號與文字邏輯
 let hapText, hapColor;
 if (happinessIndex <= 20) { hapText = "民不聊生 💀"; hapColor = "#c0392b"; }        
 else if (happinessIndex <= 40) { hapText = "生活困難 😰"; hapColor = "#e67e22"; }   
 else if (happinessIndex <= 60) { hapText = "體感正常 😐"; hapColor = "#f1c40f"; }   
 else if (happinessIndex <= 80) { hapText = "安居樂業 😌"; hapColor = "#2ecc71"; }   
-else { hapText = "人間天堂 👼"; hapColor = "#27ae60"; }                        
+else { hapText = "人間天堂 👼"; hapColor = "#27ae60"; }  
 
-document.getElementById("happinessBigNumber").innerText = happinessIndex;
-document.getElementById("happinessBigNumber").style.color = hapColor;
-document.getElementById("happinessBigText").innerText = hapText;
-document.getElementById("happinessBigText").style.color = hapColor;
-document.getElementById("happinessBigText").style.backgroundColor = hapColor + "20"; 
+// 6. 安全更新 DOM 元素 (確保網頁上有這個區塊才寫入，防止當機)
+if (document.getElementById("happinessBigNumber")) {
+    document.getElementById("happinessBigNumber").innerText = happinessIndex;
+    document.getElementById("happinessBigNumber").style.color = hapColor;
+    document.getElementById("happinessBigText").innerText = hapText;
+    document.getElementById("happinessBigText").style.color = hapColor;
+    document.getElementById("happinessBigText").style.backgroundColor = hapColor + "20"; 
+}
 
-new Chart(document.getElementById("happinessGaugeChart"), {
-    type: "doughnut",
-    data: { labels: ["民不聊生", "生活困難", "體感正常", "安居樂業", "人間天堂"], datasets: [{ data: [20, 20, 20, 20, 20], backgroundColor: ["#c0392b", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"], borderWidth: 0 }] },
-    options: { responsive: true, circumference: 180, rotation: -90, cutout: "60%", plugins: { legend: { position: 'bottom' }, tooltip: { enabled: false }, gaugeNeedle: {val: happinessIndex} } },
-    plugins: [gaugeNeedlePlugin]
-});
+// 7. 安全渲染圖表 (防止 Chart.js 報錯當機)
+if (document.getElementById("happinessGaugeChart") && typeof Chart !== 'undefined') {
+    new Chart(document.getElementById("happinessGaugeChart"), {
+        type: "doughnut",
+        data: { 
+            labels: ["民不聊生", "生活困難", "體感正常", "安居樂業", "人間天堂"], 
+            datasets: [{ 
+                data: [20, 20, 20, 20, 20], 
+                backgroundColor: ["#c0392b", "#e67e22", "#f1c40f", "#2ecc71", "#27ae60"], 
+                borderWidth: 0 
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            circumference: 180, 
+            rotation: -90, 
+            cutout: "60%", 
+            plugins: { 
+                legend: { position: 'bottom' }, 
+                tooltip: { enabled: false }, 
+                // 將計算好的幸福指數送進指針套件
+                gaugeNeedle: { val: happinessIndex } 
+            } 
+        },
+        // 確保 gaugeNeedlePlugin 存在才載入套件，這是最常當機的地方
+        plugins: typeof gaugeNeedlePlugin !== 'undefined' ? [gaugeNeedlePlugin] : []
+    });
+}
 
 /* ======================
 🚥 景氣對策信號燈 (精準抓取數據版 - 灰燈修復版)
