@@ -314,28 +314,33 @@ nav.system-nav a:hover {
     <div class="card-value" id="cpiGrowthDisplay" style="font-size: 28px; font-weight: bold;">-- %</div>
     <div style="font-size:13px; color:#7f8c8d; margin-top:5px;" id="cpiGrowthStatus">等待資料輸入...</div>
   </div>
-  <div class="card">
-    <div class="cardTitle">貨幣供給量</div>
-    <div class="cardValue" id="money"></div>
-  </div>
-  <div class="card">
+  <div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
     <div class="cardTitle">實質經濟成長率<br><span style="font-size:14px; color:#7f8c8d;">(扣除通膨後)</span></div>
     <div class="cardValue" id="gdpGrowth"></div>
+  </div>
+  <div class="card">
+    <div class="cardTitle">實質 GDP<br><span style="font-size:14px; color:#16a085;">(真實產值)</span></div>
+    <div class="cardValue" id="realGdp" style="color:#16a085;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">實質GDP日成長率</div>
+    <div class="card-value" id="realGdpGrowthDisplay" style="font-size: 28px; font-weight: bold; color: #16a085;">-- %</div>
+    <div style="font-size:13px; color:#16a085; margin-top:5px;" id="realGdpGrowthStatus">等待資料輸入...</div>
   </div>
   <div class="card">
     <div class="cardTitle">名目 GDP<br><span style="font-size:14px; color:#7f8c8d;">(未扣除通膨)</span></div>
     <div class="cardValue" id="gdp"></div>
   </div>
-  <div class="card" style="background: #e8f8f5; border: 2px solid #1abc9c;">
-    <div class="cardTitle">實質 GDP<br><span style="font-size:14px; color:#16a085;">(真實產值)</span></div>
-    <div class="cardValue" id="realGdp" style="color:#16a085;"></div>
-  </div>
   <div class="card">
-    <div class="card-title">GDP日成長率</div>
+    <div class="card-title">名目GDP日成長率</div>
     <div class="card-value" id="gdpGrowthDisplay" style="font-size: 28px; font-weight: bold;">-- %</div>
     <div style="font-size:13px; color:#7f8c8d; margin-top:5px;" id="gdpGrowthStatus">等待資料輸入...</div>
   </div>
   <div class="card">
+    <div class="cardTitle">貨幣供給量</div>
+    <div class="cardValue" id="money"></div>
+  </div>
+  <div class="card" style="background: #FFFFE8; border: 2px solid #1abc9c;">
     <div class="cardTitle">股票結算價格</div>
     <div class="cardValue" id="stockp"></div>
   </div>
@@ -372,16 +377,23 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v9.4) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v2.0.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p><b>v9.4</b>
+            <p><b>v2.0.0</b>：
+                <ul>
+                    <li><b>新增日成長率：</b>新增實質GDP日成長率。</li>
+                    <li><b>修復顯示異常：</b>物價指數日成長率顯示異常修正。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            <p><b>v1.9.4</b>
                 <ul>
                     <li><b>邊緣AI設定值：</b>當前可手動加入訓練資料天數、基本面與籌碼面。</li>
                     <li><b>優化指數計算：</b>優化幸福指數，加入經濟成長。</li>
                 </ul>
             </p>
-            <p><b>v9.3</b>
+            <p><b>v1.9.3</b>
                 <ul>
                     <li><b>基礎技術指標：</b>新增「KD 隨機指標」，輔助判斷市場超買與超賣區。</li>
                     <li><b>動能預警系統：</b>新增「KD 震盪指標 (KD OSC)」，提前抓出股價反轉時機。</li>
@@ -389,19 +401,19 @@ nav.system-nav a:hover {
                     <li><b>優化各子系統：</b>優化與修復BUG。</li>
                 </ul>
             </p>
-            <p><b>v9.2</b>：
+            <p><b>v1.9.2</b>：
                 <ul>
                     <li><b>機器語音回覆：</b>新增機器人語音回答內容。</li>
                     <li><b>更新景氣燈號：</b>景氣燈號考量股市、資產差距與經濟狀況。</li>
                     <li><b>經濟成長公式：</b>實質經濟成長率公式調整。</li>
                 </ul>
             </p>
-            <p><b>v9.1</b>：
+            <p><b>v1.9.1</b>：
                 <ul>
                     <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
                 </ul>
             </p>
-            <p><b>v9.0</b>：
+            <p><b>v1.9.0</b>：
                 <ul>
                     <li><b>生成式AI支援：</b>可以詢問大樹銀行AI行長，並了解當前班級經濟情況。</li>
                     <li><b>新增日成長率：</b>新增CPI、GDP日成長率。</li>
@@ -410,7 +422,7 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v8.0</b>：
+            <p><b>v1.8.0</b>：
                 <ul>
                     <li><b>AI邊緣運算：</b>導入獨立運算的 LSTM 神經網路，每台設備具備專屬數位大腦預測明日股價。</li>
                     <li><b>社會情緒指標：</b>新增「經濟幸福指數儀表板」，正向評估通膨與貧富分配對班級生活品質的影響。</li>
@@ -421,7 +433,7 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v7.0</b>：
+            <p><b>v1.7.0</b>：
                 <ul>
                     <li><b>實質購買力：</b>新增「實質薪資」儀表板與雙軌折線圖，揭示通膨影響下的真實購買力。</li>
                     <li><b>自動分析系統：</b>新增政策建議系統，自動根據通膨、薪資與貧富差距給予施政方向。</li>
@@ -429,14 +441,14 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v6.0</b>：
+            <p><b>v1.6.0</b>：
                 <ul>
                     <li><b>貪婪指標：</b>新增貪婪恐懼指標，提供經濟參考。</li>
                     <li><b>吉尼係數：</b>將隱藏資產差距指數顯示於主頁並記錄。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v5.0</b>：
+            <p><b>v1.5.0</b>：
                 <ul>
                     <li><b>技術分析：</b>新增 MA20、自訂 MA 日數、RSI 溫度計、MACD 趨勢紅綠燈。</li>
                     <li><b>核心模型：</b>股價波動考量「基本面、籌碼面、情緒面」。</li>
@@ -445,7 +457,7 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v4.0</b>：
+            <p><b>v1.4.0</b>：
                 <ul>
                     <li><b>生產總值：</b>新增 GDP 與 GDP 成長率動態追蹤。</li>
                     <li><b>圖表呈現：</b>整合各指標歷史數據表。</li>
@@ -453,7 +465,7 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v3.0</b>：
+            <p><b>v1.3.0</b>：
                 <ul>
                     <li><b>貨幣總量：</b>新增貨幣供給量監測。</li>
                     <li><b>薪資變化：</b>依照通膨調整薪資獎金基準表。</li>
@@ -462,14 +474,14 @@ nav.system-nav a:hover {
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v2.0</b>：
+            <p><b>v1.2.0</b>：
                 <ul>
                     <li><b>平均物價：</b>計算班級CPI消費者物價指數。</li>
                     <li><b>擴充系統：</b>建立子系統與經濟計算器。</li>
                 </ul>
             </p>
             <hr style="border:0; border-top:1px dashed #ccc;">
-            <p><b>v1.0</b>：
+            <p><b>v1.1.0</b>：
                 <ul>
                     <li><b>銀行利率：</b>點數銀行利率公告，提供活存利率與定存利率。</li>
                     <li><b>通膨指數：</b>計算通膨指數了解當前經濟狀況。</li>
@@ -1782,6 +1794,10 @@ async function sendToManager(source) {
     let currentQriScore = document.getElementById("srriScore") ? document.getElementById("srriScore").innerText : '未知';
     let currentQriState = document.getElementById("srriText") ? document.getElementById("srriText").innerText : '未知';
 
+        const gdpGrowthText = document.getElementById('gdpGrowthDisplay') ? document.getElementById('gdpGrowthDisplay').innerText : '未知';
+        const cpiGrowthText = document.getElementById('cpiGrowthDisplay') ? document.getElementById('cpiGrowthDisplay').innerText : '未知';
+        const realGdpGrowthText = document.getElementById('realGdpGrowthDisplay') ? document.getElementById('realGdpGrowthDisplay').innerText : '未知';
+
     // 3. 組合給大樹行長的終極情報網
     const systemPrompt = `
         你現在是「大樹點數銀行」的行長，名字叫「大樹」。
@@ -1793,10 +1809,11 @@ async function sendToManager(source) {
         - 結算股價：${typeof stockp !== 'undefined' ? stockp : '未知'} 點
         - 景氣對策燈號：${typeof sigText !== 'undefined' ? sigText : '未知'}
         - 通膨指數：${typeof inflation !== 'undefined' ? inflation : '未知'}
-        - CPI 物價上漲率：${typeof cpi !== 'undefined' ? cpi : '未知'}%
+        - CPI 物價上漲率：${typeof cpi !== 'undefined' ? cpi : '未知'}% (今日變化：${cpiGrowthText})
         - 貨幣供給量：${typeof money !== 'undefined' ? money : '未知'}
         - 名目/實質 GDP：${typeof nominalGdp !== 'undefined' ? nominalGdp : '未知'} / ${typeof realGdpVal !== 'undefined' ? realGdpVal : '未知'}
-        - 實質經濟成長率：${typeof realGdpGrowthVal !== 'undefined' ? realGdpGrowthVal : '未知'}%
+        - 名目 GDP 日成長率：${gdpGrowthText}
+        - 實質 GDP 日成長率：${realGdpGrowthText}
         - 貧富差距 (吉尼係數)：${typeof currentGini !== 'undefined' ? currentGini : '未知'}
         - 目前銀行利率：活存 ${typeof savingRate !== 'undefined' ? savingRate : '未知'} / 定存 ${typeof fixedRate !== 'undefined' ? fixedRate : '未知'}
         
@@ -1929,35 +1946,80 @@ function updateGdpGrowth(yesterdayGdp, todayGdp) {
     return growthRate; // 回傳數值，方便你未來餵給 AI 模型
 }
 
+// 新增：計算並更新「實質 GDP」成長率的專屬函數
+function updateRealGdpGrowth(yesterdayRealGdp, todayRealGdp) {
+    const displayEl = document.getElementById('realGdpGrowthDisplay');
+    const statusEl = document.getElementById('realGdpGrowthStatus');
+
+    // 如果畫面上沒有這個格子，就不執行
+    if (!displayEl || !statusEl) return;
+
+    if (!yesterdayRealGdp || yesterdayRealGdp <= 0 || !todayRealGdp) {
+        displayEl.innerText = "-- %";
+        displayEl.style.color = "#333";
+        statusEl.innerText = "缺乏資料，無法比較";
+        return 0;
+    }
+
+    // 計算成長率公式：(今天 - 昨天) / 昨天 * 100
+    const growthRate = ((todayRealGdp - yesterdayRealGdp) / yesterdayRealGdp) * 100;
+    
+    // 判斷正負值
+    const isPositive = growthRate >= 0;
+    // 改成跟你的名目 GDP 一樣，正數紅色 (#e74c3c)，負數綠色 (#2ecc71)
+    const color = isPositive ? '#e74c3c' : '#2ecc71';
+    const arrow = isPositive ? '▲' : '▼';
+    
+    // 更新畫面顯示
+    displayEl.style.color = color;
+    displayEl.innerText = `${arrow} ${Math.abs(growthRate).toFixed(2)}%`;
+    statusEl.innerText = isPositive ? "🔥 實質產值提升 (真成長)" : "❄️ 通膨吃掉產值 (實質衰退)";
+    
+    return growthRate;
+}
+
 // 升級版：自動從歷史資料庫 (historyData) 計算各種日成長率
 function autoCalculateDailyGrowth() {
     // 確保資料庫裡至少有兩天的資料才能比較
     if (typeof historyData !== 'undefined' && historyData.length >= 2) {
-        // 取得最後一天 (今天) 和倒數第二天 (昨天) 的整筆資料
         const todayRecord = historyData[historyData.length - 1];
         const yesterdayRecord = historyData[historyData.length - 2];
         
-        // 1. 計算 GDP 成長率
+        // 1. 計算名目 GDP 成長率
         if (todayRecord.gdp !== undefined && yesterdayRecord.gdp !== undefined) {
             updateGdpGrowth(yesterdayRecord.gdp, todayRecord.gdp);
         }
 
-        // 2. 計算 CPI 成長率 (對應您資料庫中的 cpi 欄位)
+        // 2. 計算 CPI 成長率
         if (todayRecord.cpi !== undefined && yesterdayRecord.cpi !== undefined) {
             updateCpiGrowth(yesterdayRecord.cpi, todayRecord.cpi);
         }
+
+        // 3. 計算「實質 GDP」日成長率 (這才是真正符合你系統邏輯的算法！)
+        if (todayRecord.gdp !== undefined && todayRecord.cpi !== undefined &&
+            yesterdayRecord.gdp !== undefined && yesterdayRecord.cpi !== undefined) {
+            
+            // 使用你系統專屬的除數公式：(1 + (cpi / 100)) 來還原歷史實質 GDP
+            const yesterdayRealGdp = yesterdayRecord.gdp / (1 + (yesterdayRecord.cpi / 100));
+            const todayRealGdp = todayRecord.gdp / (1 + (todayRecord.cpi / 100));
+            
+            // 將算出來的實質 GDP 丟給顯示函數
+            updateRealGdpGrowth(yesterdayRealGdp, todayRealGdp);
+        }
+
     } else {
         // 資料不足兩天的防呆處理
-        ['gdpGrowthDisplay', 'cpiGrowthDisplay'].forEach(id => {
+        ['gdpGrowthDisplay', 'cpiGrowthDisplay', 'realGdpGrowthDisplay'].forEach(id => {
             let el = document.getElementById(id);
             if(el) { el.innerText = "-- %"; el.style.color = "#333"; }
         });
-        ['gdpGrowthStatus', 'cpiGrowthStatus'].forEach(id => {
+        ['gdpGrowthStatus', 'cpiGrowthStatus', 'realGdpGrowthStatus'].forEach(id => {
             let el = document.getElementById(id);
             if(el) el.innerText = "資料不足兩天，無法計算";
         });
     }
 }
+
 
 // 綁定延遲執行 (確保網頁與資料庫載入完成後才去計算)
 setTimeout(autoCalculateDailyGrowth, 500);
@@ -1974,14 +2036,8 @@ function updateCpiGrowth(yesterdayCpi, todayCpi) {
         return 0;
     }
 
-    // 計算成長幅度公式 (若昨天為0，則避免除以0的錯誤)
-    let growthRate = 0;
-    if (yesterdayCpi !== 0) {
-        growthRate = ((todayCpi - yesterdayCpi) / Math.abs(yesterdayCpi)) * 100;
-    } else {
-        // 如果昨天 CPI 剛好是 0，直接取今天的絕對差距當作成長率
-        growthRate = todayCpi > 0 ? 100 : (todayCpi < 0 ? -100 : 0);
-    }
+    // ✅ 修正版：直接相減計算「百分點」差異，不再有除以0的問題！
+    const growthRate = todayCpi - yesterdayCpi;
     
     // 判斷正負值：CPI 上漲(通膨惡化)用紅色，CPI 下跌(通膨降溫)用綠色
     const isPositive = growthRate > 0;
