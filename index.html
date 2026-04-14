@@ -377,9 +377,16 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v2.0.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v2.1.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p><b>v2.1.0</b>：
+                <ul>
+                    <li><b>教師管理後臺：</b>教師管理後臺簡易化。</li>
+                    <li><b>雲端資料儲存：</b>數據上傳雲端資料庫。</li>
+                </ul>
+            </p>
+            <hr style="border:0; border-top:1px dashed #ccc;">
             <p><b>v2.0.0</b>：
                 <ul>
                     <li><b>新增日成長率：</b>新增實質GDP日成長率。</li>
@@ -797,61 +804,35 @@ nav.system-nav a:hover {
 
 <script>
 
-/* ======================
-老師修改區
-====================== */
-let baseAsset = 500
-let students = 28
+// ==========================================
+// ⚡ 大樹雲端自動同步模組 (替代原本手動貼上的變數)
+// ==========================================
+(function() {
+    // 透過 Firebase REST API 同步抓取最新設定檔
+    var url = "https://firestore.googleapis.com/v1/projects/gift-41d41/databases/(default)/documents/stockSystem/indexConfig?key=AIzaSyAyxO9T4XuB0PXiksOLAsqhjx0Xa_VNDqA";
+    var xhr = new XMLHttpRequest();
+    // 設定為 false (同步)，確保網頁會「等資料抓完」才繼續畫圖表
+    xhr.open("GET", url, false); 
+    try {
+        xhr.send();
+        if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            if(data.fields && data.fields.configCode) {
+                var code = data.fields.configCode.stringValue;
+                // 自動將教師後台貼上的 let 轉換為全域變數 window. 讓下方所有程式碼都能無縫接軌！
+                code = code.replace(/(^|\n)\s*(let|const|var)\s+/g, '$1window.');
+                eval(code);
+                console.log("✅ 成功從大樹雲端連線取得最新數據！");
+            }
+        } else {
+            console.warn("尚未抓取到雲端資料，或 Firebase 權限遭拒絕。");
+        }
+    } catch(e) {
+        console.error("雲端連線錯誤", e);
+    }
+})();
+// ==========================================
 
-let totalShares = 360;
-
-let baseSalary = 30
-let adjustRatio = 0.8
-
-let savingRate = 0.5
-let fixedRate = 7
-
-let basePrice = 10
-
-let salaryData = [
-{name:"每週薪資",base:30,note:"擔任職位認真負責"},
-{name:"每週加碼獎金A",base:15,note:"擔任職務卓越表現III"},
-{name:"每週加碼獎金B",base:10,note:"擔任職務卓越表現II"},
-{name:"每週加碼獎金C",base:5,note:"擔任職務卓越表現I"},
-{name:"每週職位獎金",base:10,note:"職位加碼獎金"},
-]
-
-let historyData=[
-{date:"2026-02-23",inflation:1.0,salary:0,cpi:0.0,money:5600,stockp:10, gini: 0.000},
-{date:"2026-02-26",inflation:1.0,salary:10,cpi:0.0,money:11200,stockp:10.4, gini: 0.025},
-{date:"2026-03-05",inflation:1.1,salary:10,cpi:30.0,money:12500,stockp:9.7, gini: 0.038},
-{date:"2026-03-06",inflation:1.2,salary:10,cpi:40.0,money:14000,stockp:10.2, gini: 0.058},
-{date:"2026-03-09",inflation:1.04,salary:10,cpi:20.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:11.1, gini: 0.077},
-{date:"2026-03-10",inflation:1.10,salary:10,cpi:20.0,money:15400,gdp:6118,gdpGrowth:6.6,stockp:11.4, gini: 0.089},
-{date:"2026-03-11",inflation:1.06,salary:10,cpi:50.0,money:14840,gdp:5894,gdpGrowth:2.7,stockp:12.3, gini: 0.098},
-{date:"2026-03-12",inflation:1.04,salary:10,cpi:55.0,money:14560,gdp:5796,gdpGrowth:1.0,stockp:13.5, gini: 0.122},
-{date:"2026-03-13",inflation:1.4,salary:15,cpi:114.3,money:15400,stockp:14.4, gini: 0.141},
-{date:"2026-03-16",inflation:1.2,salary:30,cpi:100.0,money:16800,stockp:15.7, gini: 0.132},
-{date:"2026-03-17",inflation:1.13,salary:27,cpi:100.0,money:15763.16,gdp:6273,gdpGrowth:9.3,stockp:15.2, gini: 0.158},
-{date:"2026-03-18",inflation:1.18,salary:28,cpi:1.6,money:16521.12,gdp:6566,gdpGrowth:14.4,stockp:16.6, gini: 0.172},
-{date:"2026-03-19",inflation:1.36,salary:33,cpi:1.6,money:19057.08,gdp:7594,gdpGrowth:32.3,stockp:15.4, gini: 0.163},
-{date:"2026-03-20",inflation:1.48,salary:35,cpi:40.6,money:20678,gdp:8217,gdpGrowth:43.2,stockp:16.9, gini: 0.158},
-{date:"2026-03-23",inflation:1.43,salary:34,cpi:84.8,money:19972.40,gdp:7942,gdpGrowth:38.4,stockp:17.7, gini: 0.167},
-{date:"2026-03-24",inflation:1.40,salary:34,cpi:99.2,money:19560.80,gdp:7798,gdpGrowth:35.9,stockp:17.0, gini: 0.183},
-{date:"2026-03-25",inflation:1.32,salary:32,cpi:147.9,money:18454.80,gdp:7355,gdpGrowth:28.1,stockp:15.6,gini:0.200},
-{date:"2026-03-26",inflation:1.28,salary:31,cpi:147.9,money:17906.00,gdp:7135,gdpGrowth:24.3,stockp:14,gini:0.201},
-{date:"2026-03-27",inflation:1.34,salary:32,cpi:153.0,money:18816.00,gdp:7482,gdpGrowth:34.3,stockp:13.7,gini:0.199},
-{date:"2026-03-30",inflation:1.55,salary:37,cpi:162.2,money:21669.20,gdp:8620,gdpGrowth:54.7,stockp:12.3,gini:0.175},
-{date:"2026-03-31",inflation:1.50,salary:36,cpi:181.2,money:21070.00,gdp:8383,gdpGrowth:50.4,stockp:12.9,gini:0.190},
-{date:"2026-04-01",inflation:1.64,salary:39,cpi:-5.9,money:23024.40,gdp:9151,gdpGrowth:64.2,stockp:13.3,gini:0.207},
-{date:"2026-04-02",inflation:1.69,salary:41,cpi:-5.9,money:23637.60,gdp:9421,gdpGrowth:69.1,stockp:14.6,gini:0.206},
-{date:"2026-04-07",inflation:2.04,salary:49,cpi:-4.9,money:28557.20,gdp:11367,gdpGrowth:104.0,stockp:16.1,gini:0.174},
-{date:"2026-04-08",inflation:2.09,salary:50,cpi:2.3,money:29212.40,gdp:11624,gdpGrowth:108.6,stockp:17.7,gini:0.197},
-{date:"2026-04-09",inflation:2.09,salary:50,cpi:15.4,money:29212.40,gdp:11624,gdpGrowth:108.6,stockp:19.5,gini:0.220},
-{date:"2026-04-10",inflation:2.58,salary:62,cpi:39.0,money:36111.60,gdp:14375,gdpGrowth:158.0,stockp:21.5,gini:0.206},
-{date:"2026-04-13",inflation:2.52,salary:60,cpi:67.1,money:35260.40,gdp:14021,gdpGrowth:151.6,stockp:23.7,gini:0.211},
-{date:"2026-04-14",inflation:2.78,salary:67,cpi:67.1,money:38959.20,gdp:15512,gdpGrowth:178.4,stockp:23.7,gini:0.191}
-]
 
 /* ======================
 經濟計算 (自動抓取最新歷史資料)
