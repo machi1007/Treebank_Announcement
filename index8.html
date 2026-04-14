@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>⚙️ 大樹銀行 - 雙核控制中心</title>
+<style>
+    body { font-family: "Microsoft JhengHei"; background: #f4f6f8; color: #333; margin: 0; padding: 0; }
+    .header { background: #1a202c; color: #f6e05e; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: none; }
+    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .card-title { font-size: 20px; color: #2d3748; margin-bottom: 15px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; font-weight: bold;}
+    
+    /* 頁籤切換樣式 */
+    .tab-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.3s; }
+    .tab-active { background: #2b6cb0; color: white; box-shadow: 0 4px 6px rgba(43, 108, 176, 0.4); }
+    .tab-inactive { background: #e2e8f0; color: #4a5568; }
+    .tab-inactive:hover { background: #cbd5e0; }
+
+    /* 程式碼模式專用 */
+    textarea { width: 100%; height: 500px; background: #2d3748; color: #f6e05e; font-family: monospace; font-size: 14px; padding: 15px; border: 2px solid #4a5568; border-radius: 8px; box-sizing: border-box; white-space: pre; line-height: 1.5;}
+
+    /* 表格樣式 */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; }
+    th { background: #edf2f7; color: #4a5568; font-size: 14px; }
+    td input { width: 90%; padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px; text-align: center; box-sizing: border-box;}
+    td input[type="text"] { text-align: left; }
+    
+    .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .grid-item label { display: block; font-size: 14px; color: #4a5568; margin-bottom: 5px; font-weight: bold;}
+    .grid-item input { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 5px; box-sizing: border-box; }
+
+    button { padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    .btn-add { background: #48bb78; color: white; margin-bottom: 10px; }
+    .btn-add:hover { background: #38a169; }
+    .btn-del { background: #fc8181; color: white; padding: 6px 12px; font-size: 14px; }
+    .btn-del:hover { background: #e53e3e; }
+    .btn-save { background: #e53e3e; color: white; padding: 15px 30px; font-size: 20px; width: 100%; display: block; margin-top: 20px;}
+    .btn-save:hover { background: #c53030; }
+
+    /* 登入牆 */
+    .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a202c; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .login-box { background: white; padding: 40px; border-radius: 15px; width: 350px; text-align: center;}
+    .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e0; border-radius: 5px; box-sizing: border-box; font-size: 16px;}
+    .login-btn { background: #f6e05e; color: #1a202c; width: 100%; padding: 12px;}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+        <h2 style="color: #1a202c; margin-top:0;">🏦 雙核控制中心登入</h2>
+        <input type="email" id="emailInput" class="login-input" placeholder="教師信箱">
+        <input type="password" id="pwdInput" class="login-input" placeholder="管理密碼">
+        <button class="login-btn" onclick="handleLogin()">進入系統</button>
+        <p id="loginError" style="color: #fc8181; font-size: 14px; display: none;">❌ 驗證失敗</p>
+    </div>
+</div>
+
+<div class="header">🏦 大樹銀行 - 雲端數據控制板</div>
+
+<div id="mainDashboard" class="container">
+    
+    <div class="tab-container">
+        <button id="btnCode" class="tab-btn tab-active" onclick="switchMode('code')">💻 程式碼快速直貼模式</button>
+        <button id="btnVisual" class="tab-btn tab-inactive" onclick="switchMode('visual')">📊 視覺化表格微調模式</button>
+    </div>
+
+    <div id="codeMode" class="card">
+        <div class="card-title">⚡ 快速貼上區 (直接貼上您的 Excel 生成代碼)</div>
+        <p style="color: #718096; font-size: 14px; margin-top: 0;">在此貼上的程式碼，會自動與「視覺化表格」同步。貼完後請點擊下方儲存！</p>
+        <textarea id="codeArea">讀取雲端資料中...</textarea>
+        <button id="saveCodeBtn" class="btn-save" onclick="saveData('code')">💾 儲存程式碼並同步至學生端</button>
+    </div>
+
+    <div id="visualMode" style="display: none;">
+        <div class="card">
+            <div class="card-title">⚙️ 系統基本參數設定</div>
+            <div class="grid-container">
+                <div class="grid-item"><label>起始資產 (baseAsset)</label><input type="number" id="baseAsset"></div>
+                <div class="grid-item"><label>班級人數 (students)</label><input type="number" id="students"></div>
+                <div class="grid-item"><label>總發行股數 (totalShares)</label><input type="number" id="totalShares"></div>
+                <div class="grid-item"><label>基本起薪 (baseSalary)</label><input type="number" id="baseSalary"></div>
+                <div class="grid-item"><label>薪資調整率 (adjustRatio)</label><input type="number" step="0.1" id="adjustRatio"></div>
+                <div class="grid-item"><label>儲蓄率 (savingRate)</label><input type="number" step="0.1" id="savingRate"></div>
+                <div class="grid-item"><label>固定利率 (fixedRate)</label><input type="number" id="fixedRate"></div>
+                <div class="grid-item"><label>初始股價 (basePrice)</label><input type="number" id="basePrice"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📈 每日歷史經濟數據紀錄</div>
+            <button class="btn-add" onclick="addHistoryRow()">➕ 新增一天紀錄</button>
+            <table>
+                <thead>
+                    <tr><th>日期</th><th>通膨率</th><th>平均薪資</th><th>CPI</th><th>貨幣供給</th><th>名目GDP</th><th>GDP成長率</th><th>股票結算價</th><th>吉尼係數</th><th>操作</th></tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💰 職位與薪資設定</div>
+            <button class="btn-add" onclick="addSalaryRow()">➕ 新增職位薪資</button>
+            <table>
+                <thead>
+                    <tr><th style="width: 25%;">獎金名稱</th><th style="width: 15%;">發放金額 (Base)</th><th style="width: 50%;">備註說明</th><th>操作</th></tr>
+                </thead>
+                <tbody id="salaryTableBody"></tbody>
+            </table>
+        </div>
+
+        <button id="saveVisualBtn" class="btn-save" onclick="saveData('visual')">💾 儲存目前表格資料並同步</button>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    // 🔗 你的 Firebase 連線設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyAyxO9T4XuB0PXiksOLAsqhjx0Xa_VNDqA",
+        authDomain: "gift-41d41.firebaseapp.com",
+        projectId: "gift-41d41",
+        storageBucket: "gift-41d41.firebasestorage.app",
+        messagingSenderId: "51812173213",
+        appId: "1:51812173213:web:4b0d744332e523b15e5b74"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const docRef = doc(db, "stockSystem", "indexConfig");
+
+    let historyData = [];
+    let salaryData = [];
+
+    // --- 登入驗證 ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            loadDataFromCloud();
+        }
+    });
+
+    window.handleLogin = () => {
+        signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('pwdInput').value)
+            .catch(() => document.getElementById('loginError').style.display = 'block');
+    };
+
+    // --- 初始化讀取雲端 ---
+    async function loadDataFromCloud() {
+        try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().configCode) {
+                const code = docSnap.data().configCode;
+                document.getElementById('codeArea').value = code; 
+                parseCodeToVisual(code); 
+            } else {
+                document.getElementById('codeArea').value = "請在此貼上您的 let 程式碼...";
+            }
+        } catch (error) { console.error("讀取失敗", error); }
+    }
+
+    window.switchMode = (mode) => {
+        const btnCode = document.getElementById('btnCode');
+        const btnVisual = document.getElementById('btnVisual');
+        
+        if(mode === 'code') {
+            try { document.getElementById('codeArea').value = generateCodeFromVisual(); } catch(e){}
+            document.getElementById('visualMode').style.display = 'none';
+            document.getElementById('codeMode').style.display = 'block';
+            btnCode.className = "tab-btn tab-active";
+            btnVisual.className = "tab-btn tab-inactive";
+        } else {
+            parseCodeToVisual(document.getElementById('codeArea').value);
+            document.getElementById('codeMode').style.display = 'none';
+            document.getElementById('visualMode').style.display = 'block';
+            btnVisual.className = "tab-btn tab-active";
+            btnCode.className = "tab-btn tab-inactive";
+        }
+    };
+
+    // ==========================================
+    // ⬇️ 翻譯機大升級：完全對齊你的格式順序！
+    // ==========================================
+    function generateCodeFromVisual() {
+        let code = "";
+        
+        // 1. 先輸出 8 個基本參數
+        const keys = ['baseAsset', 'students', 'totalShares', 'baseSalary', 'adjustRatio', 'savingRate', 'fixedRate', 'basePrice'];
+        keys.forEach(k => {
+            let val = document.getElementById(k).value;
+            code += `let ${k} = ${val};\n\n`;
+        });
+
+        // 2. 輸出 salaryData (薪水資料) -> 單行排列風格
+        let salaryStr = salaryData.map(s => JSON.stringify(s)).join(",\n");
+        code += `let salaryData = [\n${salaryStr}\n];\n\n`;
+
+        // 3. 最後輸出 historyData (歷史資料) -> 單行排列風格
+        let historyStr = historyData.map(h => JSON.stringify(h)).join(",\n");
+        code += `let historyData = [\n${historyStr}\n];\n`;
+
+        return code;
+    }
+
+    // ⬆️ 翻譯機：讀取文字框的程式碼，強制轉成變數並填入表格
+    function parseCodeToVisual(codeStr) {
+        try {
+            let safeCode = codeStr.replace(/(^|\n)\s*(let|const|var)\s+/g, '$1window.');
+            eval(safeCode); 
+            
+            historyData = window.historyData || [];
+            salaryData = window.salaryData || [];
+            ['baseAsset', 'students', 'totalShares', 'baseSalary', 'adjustRatio', 'savingRate', 'fixedRate', 'basePrice'].forEach(k => { 
+                if(window[k] !== undefined) document.getElementById(k).value = window[k]; 
+            });
+            renderTables();
+        } catch (e) {
+            console.error("解析程式碼至表格時發生錯誤：格式可能不對", e);
+        }
+    }
+
+    function renderTables() {
+        const hBody = document.getElementById('historyTableBody');
+        hBody.innerHTML = '';
+        historyData.forEach((row, index) => {
+            hBody.innerHTML += `
+                <tr>
+                    <td><input type="text" value="${row.date || ''}" onchange="updateH(${index}, 'date', this.value)"></td>
+                    <td><input type="number" step="0.01" value="${row.inflation || 0}" onchange="updateH(${index}, 'inflation', this.value)"></td>
+                    <td><input type="number" value="${row.salary || 0}" onchange="updateH(${index}, 'salary', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${row.cpi || 0}" onchange="updateH(${index}, 'cpi', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${row.money || 0}" onchange="updateH(${index}, 'money', this.value)"></td>
+                    <td><input type="number" value="${row.gdp || ''}" onchange="updateH(${index}, 'gdp', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${row.gdpGrowth || ''}" onchange="updateH(${index}, 'gdpGrowth', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${row.stockp || 0}" onchange="updateH(${index}, 'stockp', this.value)"></td>
+                    <td><input type="number" step="0.001" value="${row.gini || 0}" onchange="updateH(${index}, 'gini', this.value)"></td>
+                    <td><button class="btn-del" onclick="delH(${index})">刪除</button></td>
+                </tr>`;
+        });
+
+        const sBody = document.getElementById('salaryTableBody');
+        sBody.innerHTML = '';
+        salaryData.forEach((row, index) => {
+            sBody.innerHTML += `
+                <tr>
+                    <td><input type="text" value="${row.name || ''}" onchange="updateS(${index}, 'name', this.value)"></td>
+                    <td><input type="number" value="${row.base || 0}" onchange="updateS(${index}, 'base', this.value)"></td>
+                    <td><input type="text" style="width:95%" value="${row.note || ''}" onchange="updateS(${index}, 'note', this.value)"></td>
+                    <td><button class="btn-del" onclick="delS(${index})">刪除</button></td>
+                </tr>`;
+        });
+    }
+
+    window.updateH = (idx, key, val) => { historyData[idx][key] = isNaN(val) || val==="" ? val : Number(val); };
+    window.updateS = (idx, key, val) => { salaryData[idx][key] = key === 'base' ? Number(val) : val; };
+    window.addHistoryRow = () => { historyData.push({date:"", inflation:1, salary:0, cpi:0, money:0, stockp:10, gini:0}); renderTables(); };
+    window.delH = (idx) => { if(confirm("刪除？")) { historyData.splice(idx, 1); renderTables(); } };
+    window.addSalaryRow = () => { salaryData.push({name:"", base:0, note:""}); renderTables(); };
+    window.delS = (idx) => { if(confirm("刪除？")) { salaryData.splice(idx, 1); renderTables(); } };
+
+    // --- 儲存並發布雲端 ---
+    window.saveData = async (source) => {
+        let finalCodeToSave = "";
+        const btnId = source === 'code' ? 'saveCodeBtn' : 'saveVisualBtn';
+        const btn = document.getElementById(btnId);
+        btn.innerText = "⏳ 儲存同步中...";
+        
+        if (source === 'code') {
+            finalCodeToSave = document.getElementById('codeArea').value;
+        } else {
+            finalCodeToSave = generateCodeFromVisual();
+        }
+
+        try {
+            await setDoc(docRef, { configCode: finalCodeToSave });
+            btn.innerText = "✅ 儲存成功！已推播至首頁";
+            setTimeout(() => btn.innerText = source === 'code' ? "💾 儲存程式碼並同步至學生端" : "💾 儲存目前表格資料並同步", 2500);
+        } catch (e) {
+            alert("發布失敗，請確認連線。");
+        }
+    };
+</script>
+</body>
+</html>
