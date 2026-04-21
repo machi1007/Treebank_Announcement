@@ -377,9 +377,14 @@ nav.system-nav a:hover {
 <div class="notice">
 <details>
         <summary style="cursor:pointer; font-weight:bold; font-size:18px;">
-            🚀 大樹銀行版本更新日誌 (目前版本：v2.1.0) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
+            🚀 大樹銀行版本更新日誌 (目前版本：v2.1.1) <small style="color:#7f8c8d; font-weight:normal;">[點擊展開/隱藏歷史紀錄]</small>
         </summary>
         <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p><b>v2.1.1</b>：
+                <ul>
+                    <li><b>調整幸福指數：</b>修正幸福指數計算方式，考量班級經濟利用對數加權。</li>
+                </ul>
+            </p>
             <p><b>v2.1.0</b>：
                 <ul>
                     <li><b>教師管理後臺：</b>教師管理後臺簡易化。</li>
@@ -1407,7 +1412,7 @@ new Chart(document.getElementById("fgGaugeChart"), {
 ====================== */
 
 // 1. 痛苦扣分項 (不變)
-let inflationPenalty = inflation > 1 ? (inflation - 1) * 100 : 0; 
+let inflationPenalty = inflation > 1 ? Math.log2(inflation) * 15 : 0;
 let giniPenalty = currentGini !== "-" ? currentGini * 100 : 0;
 
 // 2. 幸福加分項 (套用您系統真實的變數：realGdpGrowthVal)
